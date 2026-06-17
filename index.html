@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Attendance Pro</title>
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 20px; margin: 0; }
+        .card { background: #1e1e1e; padding: 20px; border-radius: 15px; max-width: 450px; margin: 20px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; }
+        button { background: #00c6ff; color: white; font-weight: bold; cursor: pointer; }
+        .btn-danger { background: #ff4b2b; }
+        .btn-success { background: #28a745; }
+        .hidden { display: none; }
+        .qr-box { background: white; padding: 10px; width: 150px; height: 150px; margin: 15px auto; border-radius: 10px; }
+        .display-text { font-size: 20px; font-weight: bold; margin: 10px 0; letter-spacing: 2px; }
+        #msg { margin-top: 15px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>College Attendance</h2>
+
+    <!-- MAIN VIEW -->
+    <div id="mainView">
+        <button onclick="showView('loginView')">Teacher Login</button>
+        <button onclick="checkStudentAccess()">Student Portal</button>
+    </div>
+
+    <!-- TEACHER LOGIN -->
+    <div id="loginView" class="hidden">
+        <h3>Admin Access</h3>
+        <input type="password" id="adminPass" placeholder="Password">
+        <button onclick="doLogin()">Login</button>
+        <button onclick="showView('mainView')" style="background:#444">Back</button>
+    </div>
+
+    <!-- TEACHER DASHBOARD -->
+    <div id="teacherView" class="hidden">
+        <button onclick="genSession()">1. Create Session</button>
+        <div id="sqr" class="qr-box hidden"></div>
+        <div id="sidText" class="display-text" style="color: #00c6ff;"></div>
+
+        <button onclick="genCode()">2. Generate Code</button>
+        <div id="cqr" class="qr-box hidden"></div>
+        <div id="codeText" class="display-text" style="color: #00ffcc;"></div>
+        
+        <hr style="border: 0.5px solid #333; margin: 20px 0;">
+        <button class="btn-success" onclick="downloadCSV()">?? Download Report (CSV)</button>
+        <button class="btn-danger" onclick="resetSystem()">?? Reset for New Day</button>
+        <button onclick="showView('mainView')" style="background:#444">Logout</button>
+    </div>
+
+    <!-- STUDENT PORTAL -->
+    <div id="studentView" class="hidden">
+        <div id="verifyStep">
+            <input id="inSid" placeholder="Enter Session ID">
+            <input id="inCode" placeholder="Enter 4-Digit Code">
+            <button onclick="verify()">Verify Access</button>
+        </div>
+        <div id="markStep" class="hidden">
+            <p>Select your Name:</p>
+            <select id="sList"></select>
+            <button id="pBtn" onclick="mark()">Confirm My Attendance</button>
+        </div>
+        <div id="msg"></div>
+        <button onclick="showView('mainView')" style="background:#444; margin-top:20px;">Back Home</button>
+    </div>
+</div>
+
+<script>
+    const SURL = "https://script.google.com/macros/s/AKfycbzMPaFy_C_F5kMfROOtUTN3wud9-JwBqm-qiWjJD3qGc6s4vj2lYuWa6ZtKTtbNRGdR2A/exec"; // REPLACE WITH YOUR DEPLOYED URL
+    let students = [];
+    let curSid = "";
+
+    function showView(id) {
+        ['mainView', 'loginView', 'teacherView', 'studentView'].forEach(v => {
+            document.getElementById(v).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    // --- STUDENT ANTI-CHEAT ---
+    function checkStudentAccess() {
+        const lastMarked = localStorage.getItem("attendance_marked_date");
+        const today = new Date().toLocaleDateString();
+        if (lastMarked === today) {
+            alert("Security Lock: You have already submitted attendance for today on this device.");
+        } else {
+            showView('studentView');
+        }
+    }
+
+    // --- TEACHER ACTIONS ---
+    function doLogin() {
+        if(document.getElementById('adminPass').value === "admin123") showView('teacherView');
+        else alert("Incorrect Password");
+    }
+
+    async function genSession() {
+        curSid = "SESS-" + Math.floor(100000 + Math.random()*900000);
+        const qrDiv = document.getElementById('sqr');
+        qrDiv.innerHTML = ""; 
+        qrDiv.classList.remove('hidden');
+        new QRCode(qrDiv, { text: curSid, width: 150, height: 150 });
+        
+        // DISPLAY SESSION AS TEXT
+        document.getElementById('sidText').innerText = curSid;
+
+        await fetch(SURL, { method: "POST", body: JSON.stringify({type:"createSession", session: curSid}) });
+    }
+
+    async function genCode() {
+        if(!curSid) return alert("Please create a Session ID first!");
+        const code = Math.floor(1000 + Math.random()*8999).toString();
+        const qrDiv = document.getElementById('cqr');
+        qrDiv.innerHTML = ""; 
+        qrDiv.classList.remove('hidden');
+        new QRCode(qrDiv, { text: code, width: 150, height: 150 });
+        
+        // DISPLAY CODE AS TEXT
+        document.getElementById('codeText').innerText = "CODE: " + code;
+
+        await fetch(SURL, { method: "POST", body: JSON.stringify({type:"updateCode", session: curSid, code: code}) });
+    }
+
+    async function downloadCSV() {
+        const res = await fetch(SURL + "?action=downloadReport");
+        const data = await res.json();
+        let csvContent = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Attendance_Report_" + new Date().toLocaleDateString() + ".csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    async function resetSystem() {
+        if(confirm("DANGER: This will delete all attendance logs for today. Are you sure?")) {
+            await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetSystem"}) });
+            alert("System Cleared for New Day.");
+            location.reload();
+        }
+    }
+
+    // --- STUDENT ACTIONS ---
+    async function verify() {
+        const sid = document.getElementById('inSid').value.trim();
+        const code = document.getElementById('inCode').value.trim();
+        if(!sid || !code) return alert("Please enter both codes");
+
+        document.getElementById('msg').innerText = "Verifying...";
+        const res = await fetch(SURL + "?action=getSessions");
+        const sessions = await res.json();
+        const match = sessions.find(x => x.session === sid && x.code === code);
+        
+        if(match) {
+            const sRes = await fetch(SURL + "?action=getStudents");
+            students = await sRes.json();
+            document.getElementById('verifyStep').classList.add('hidden');
+            document.getElementById('markStep').classList.remove('hidden');
+            document.getElementById('sList').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
+            document.getElementById('msg').innerText = "Codes Verified. Select your name.";
+        } else {
+            document.getElementById('msg').innerText = "? Invalid Session or Code.";
+        }
+    }
+
+    async function mark() {
+        const btn = document.getElementById('pBtn');
+        const sid = document.getElementById('inSid').value.trim();
+        const stud = students[document.getElementById('sList').value];
+        
+        btn.disabled = true;
+        document.getElementById('msg').innerText = "Registering attendance...";
+
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({
+            type: "markPresent", session: sid, name: stud.name, roll: stud.roll, class: stud.class
+        })});
+        
+        const result = await res.text();
+        if(result === "SUCCESS") {
+            localStorage.setItem("attendance_marked_date", new Date().toLocaleDateString());
+            document.getElementById('msg').innerText = "? Attendance Recorded! Device Locked.";
+            document.getElementById('markStep').innerHTML = "<h3>Thank you, " + stud.name + ". Your attendance is saved.</h3>";
+        } else {
+            alert("Error: You might already be marked present.");
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
