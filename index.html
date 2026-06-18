@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampusVerify Pro</title>
+    <title>CampusVerify Ultra</title>
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
     <style>
         :root { --primary: #00c6ff; --bg: #121212; --card: #1e1e1e; }
@@ -19,7 +19,6 @@
         .display-text { font-size: 20px; font-weight: bold; margin: 10px 0; color: var(--primary); }
         .session-item { background: #252525; padding: 15px; border-radius: 12px; margin-top: 10px; text-align: left; border-left: 5px solid var(--primary); }
         .stat-line { display: flex; justify-content: space-between; margin-top: 10px; font-size: 14px; }
-        .present-count { color: #00ffcc; font-weight: bold; }
         .absent-link { color: #ff4b2b; font-weight: bold; text-decoration: underline; cursor: pointer; }
         #modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: #1e1e1e; padding: 20px; border-radius: 15px; width: 85%; max-width: 400px; max-height: 70vh; overflow-y: auto; }
@@ -28,7 +27,7 @@
 <body>
 
 <div class="card">
-    <h2>CampusVerify</h2>
+    <h2>CampusVerify Ultra</h2>
 
     <div id="mainView">
         <button onclick="showView('loginView')">Teacher Login</button>
@@ -38,7 +37,7 @@
     <!-- TEACHER LOGIN -->
     <div id="loginView" class="hidden">
         <input type="password" id="adminPass" placeholder="Admin Password">
-        <button onclick="checkAdmin()">Login</button>
+        <button onclick="doSecureLogin()">Secure Login</button>
         <button class="btn-back" onclick="showView('mainView')">Back</button>
     </div>
 
@@ -47,20 +46,15 @@
         <button onclick="hCreateSession()">1. Create Session ID</button>
         <div id="sQR" class="qr-box hidden"></div>
         <div id="sDisplay" class="display-text"></div>
-
         <button onclick="hCreateCode()">2. Generate Code</button>
         <div id="cQR" class="qr-box hidden"></div>
         <div id="cDisplay" class="display-text" style="color:#00ffcc"></div>
-
         <hr style="border: 0.5px solid #333; margin: 20px 0;">
-        <h3>Attendance History</h3>
-        <button onclick="loadDashboard()" style="background:#28a745">🔄 Refresh History</button>
-        <div id="historyList">Loading history...</div>
-        
-        <button class="btn-success" onclick="downloadCSV()" style="margin-top:20px">📥 Download Master Report</button>
-        <button class="btn-danger" onclick="resetAttendance()">🗑️ Reset Attendance (Present List)</button>
-        <button class="btn-danger" onclick="resetSessions()" style="background:#cc0000">🗑️ Reset Session History</button>
-        
+        <button onclick="loadDashboard()" style="background:#28a745">?? Refresh History</button>
+        <div id="historyList"></div>
+        <button class="btn-success" onclick="downloadCSV()" style="margin-top:20px">?? Download Report</button>
+        <button class="btn-danger" onclick="resetAttendance()">??? Reset Attendance</button>
+        <button class="btn-danger" onclick="resetSessions()" style="background:#cc0000">??? Reset History</button>
         <button class="btn-back" onclick="showView('mainView')" style="margin-top:20px">Logout</button>
     </div>
 
@@ -69,11 +63,11 @@
         <div id="sVerify">
             <input id="isid" placeholder="Session ID">
             <input id="icode" placeholder="Verify Code">
-            <button onclick="verifyStudent()">Verify Access</button>
+            <button onclick="requestGPS()">Verify Codes & Location</button>
         </div>
         <div id="sMark" class="hidden">
             <select id="studSelect"></select>
-            <button id="pBtn" onclick="markAttendance()">Confirm My Attendance</button>
+            <button id="pBtn" onclick="markAttendance()">Submit Attendance</button>
         </div>
         <div id="status" style="margin-top:15px; font-size:14px; color:var(--primary);">Ready</div>
         <button class="btn-back" onclick="showView('mainView')">Back Home</button>
@@ -82,17 +76,15 @@
 
 <div id="modal">
     <div class="modal-box">
-        <h3 style="color:#ff4b2b">Absent Students</h3>
+        <h3>Absent Students</h3>
         <div id="absentNames" style="text-align: left; line-height: 2;"></div>
         <button onclick="closeModal()" style="margin-top:20px; background:#444">Close</button>
     </div>
 </div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbziapaitQGwNsHY4CUTxTFasp-WQpRGcR-qQM2cRKWGeTYpsJomshKyZBgAuRGEfGGrEw/exec"; // REPLACE THIS
-    let dashboardData = [];
-    let students = [];
-    let activeSid = "";
+    const SURL = "https://script.google.com/macros/s/AKfycbxpqFaurIHSBZLwT69EEEHhkcgoPRQ0HvqEUUurwDuQ3kf4aE3k3FfFVBv49HM53INl5A/exec"; 
+    let uLat, uLon, students, dashboardData, activeSid;
 
     function showView(id) {
         document.querySelectorAll('.card > div').forEach(v => v.classList.add('hidden'));
@@ -100,22 +92,65 @@
         if(id === 'teacherView') loadDashboard();
     }
 
-    function checkAdmin() {
-        if(document.getElementById('adminPass').value === "admin123") showView('teacherView');
-        else alert("Wrong Password");
+    async function doSecureLogin() {
+        const pass = document.getElementById('adminPass').value;
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: pass}) });
+        const result = await res.text();
+        if (result.trim() === "SUCCESS") showView('teacherView');
+        else alert("Unauthorized Access");
     }
 
-    // --- CRITICAL: ONE-TIME PRESENT LOCK ---
     function checkStudentAccess() {
-        const lastMarkedDate = localStorage.getItem("att_lock");
-        const today = new Date().toLocaleDateString();
-        
-        if (lastMarkedDate === today) {
-            alert("Device Locked: You have already marked your attendance today.");
-            showView('mainView');
-        } else {
-            showView('studentView');
-        }
+        if (localStorage.getItem("att_lock") === new Date().toLocaleDateString()) alert("Already marked today.");
+        else showView('studentView');
+    }
+
+    function requestGPS() {
+        const sid = document.getElementById('isid').value.trim();
+        const vco = document.getElementById('icode').value.trim();
+        if(!sid || !vco) return alert("Enter codes first");
+        document.getElementById('status').innerText = "?? Getting Fresh GPS Signal...";
+        navigator.geolocation.getCurrentPosition(pos => {
+            uLat = pos.coords.latitude;
+            uLon = pos.coords.longitude;
+            verifyCodes();
+        }, () => alert("GPS Permission Denied"), { enableHighAccuracy: true, maximumAge: 0 });
+    }
+
+    async function verifyCodes() {
+        const sid = document.getElementById('isid').value.trim();
+        const vco = document.getElementById('icode').value.trim();
+        const res = await fetch(SURL + "?action=getSessions");
+        const sessions = await res.json();
+        const match = sessions.find(x => x.session === sid && x.code === vco);
+        if(match) {
+            const sRes = await fetch(SURL + "?action=getStudents");
+            students = await sRes.json();
+            document.getElementById('sVerify').classList.add('hidden');
+            document.getElementById('sMark').classList.remove('hidden');
+            document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
+            document.getElementById('status').innerText = "Location OK. Select Name.";
+        } else alert("Invalid Code");
+    }
+
+    async function markAttendance() {
+        const btn = document.getElementById('pBtn');
+        const stud = students[document.getElementById('studSelect').value];
+        btn.disabled = true;
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({
+            type: "markPresent", session: document.getElementById('isid').value,
+            name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon
+        })});
+        const result = await res.text();
+        if(result === "SUCCESS") {
+            localStorage.setItem("att_lock", new Date().toLocaleDateString());
+            document.getElementById('status').innerText = "? Attendance Marked!";
+            document.getElementById('sMark').innerHTML = "<h3>Success!</h3>";
+        } else if (result.startsWith("OUT_OF_RANGE")) {
+            const dist = result.split("_")[2];
+            alert("SECURITY ALERT: You are " + dist + " km away from the campus. Attendance Rejected!");
+            btn.disabled = false;
+        } else alert(result);
     }
 
     // --- TEACHER ACTIONS ---
@@ -128,7 +163,7 @@
     }
 
     async function hCreateCode() {
-        if(!activeSid) return alert("Generate Session First");
+        if(!activeSid) return alert("Create Session First");
         let code = Math.floor(1000 + Math.random()*8999).toString();
         document.getElementById('cQR').innerHTML = ""; document.getElementById('cQR').classList.remove('hidden');
         new QRCode(document.getElementById('cQR'), { text: code, width: 150, height: 150 });
@@ -137,22 +172,12 @@
     }
 
     async function loadDashboard() {
-        const history = document.getElementById('historyList');
+        const h = document.getElementById('historyList');
         try {
             const res = await fetch(`${SURL}?action=getDashboard&t=${Date.now()}`);
             dashboardData = await res.json();
-            if(dashboardData.length === 0) { history.innerText = "No history."; return; }
-            history.innerHTML = dashboardData.map((item, index) => `
-                <div class="session-item">
-                    <small style="color:#777">${new Date(item.date).toLocaleString()}</small>
-                    <div><b>ID: ${item.sid} | Code: ${item.code}</b></div>
-                    <div class="stat-line">
-                        <span class="present-count">Present: ${item.present}</span>
-                        <span class="absent-link" onclick="openAbsents(${index})">Absent: ${item.absent} (View)</span>
-                    </div>
-                </div>
-            `).join('');
-        } catch(e) { history.innerText = "Error loading history."; }
+            h.innerHTML = dashboardData.map((item, i) => `<div class="session-item"><small>${new Date(item.date).toLocaleString()}</small><div><b>ID: ${item.sid} | Code: ${item.code}</b></div><div class="stat-line"><span style="color:#00ffcc">Present: ${item.present}</span><span class="absent-link" onclick="openAbsents(${i})">Absent: ${item.absent} (View)</span></div></div>`).join('');
+        } catch(e) { h.innerText = "No sessions."; }
     }
 
     function openAbsents(idx) {
@@ -162,72 +187,9 @@
     }
 
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
-
-    async function downloadCSV() {
-        const res = await fetch(SURL + "?action=downloadReport");
-        const data = await res.json();
-        let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n");
-        const link = document.createElement("a");
-        link.href = encodeURI(csv);
-        link.download = "Attendance_Report.csv";
-        link.click();
-    }
-
-    async function resetAttendance() {
-        if(confirm("Clear present list?")) {
-            await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetAttendance"}) });
-            loadDashboard();
-        }
-    }
-
-    async function resetSessions() {
-        if(confirm("Clear session history?")) {
-            await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetSessions"}) });
-            loadDashboard();
-        }
-    }
-
-    // --- STUDENT ACTIONS ---
-    async function verifyStudent() {
-        const sid = document.getElementById('isid').value.trim();
-        const code = document.getElementById('icode').value.trim();
-        const status = document.getElementById('status');
-        if(!sid || !code) return;
-        status.innerText = "Verifying...";
-        const res = await fetch(SURL + "?action=getSessions");
-        const sessions = await res.json();
-        const match = sessions.find(x => x.session === sid && x.code === code);
-        if(match) {
-            status.innerText = "Loading list...";
-            const sRes = await fetch(SURL + "?action=getStudents");
-            students = await sRes.json();
-            document.getElementById('sVerify').classList.add('hidden');
-            document.getElementById('sMark').classList.remove('hidden');
-            document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-            status.innerText = "Select your name.";
-        } else { status.innerText = "❌ Invalid Codes."; }
-    }
-
-    async function markAttendance() {
-        const btn = document.getElementById('pBtn');
-        const stud = students[document.getElementById('studSelect').value];
-        btn.disabled = true;
-        document.getElementById('status').innerText = "Registering...";
-        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({
-            type: "markPresent", session: document.getElementById('isid').value,
-            name: stud.name, roll: stud.roll, class: stud.class
-        })});
-        const result = await res.text();
-        if(result === "SUCCESS") {
-            // LOCK THE DEVICE FOR TODAY
-            localStorage.setItem("att_lock", new Date().toLocaleDateString());
-            document.getElementById('status').innerText = "✅ Attendance Marked!";
-            document.getElementById('sMark').innerHTML = "<h3>Thank you!</h3>";
-        } else {
-            alert("Error: Already marked present in this session.");
-            btn.disabled = false;
-        }
-    }
+    async function downloadCSV() { const res = await fetch(SURL + "?action=downloadReport"); const data = await res.json(); let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n"); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "Attendance.csv"; link.click(); }
+    async function resetAttendance() { if(confirm("Reset Present list?")) await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetAttendance"}) }); location.reload(); }
+    async function resetSessions() { if(confirm("Reset History?")) await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetSessions"}) }); location.reload(); }
 </script>
 </body>
 </html>
