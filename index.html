@@ -1,16 +1,9 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CampusVerify Ultra</title>
-    
-    <!-- PWA Settings (The Magic Part) -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#121212">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
-
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
     <style>
         :root { --primary: #00c6ff; --bg: #121212; --card: #1e1e1e; }
@@ -34,7 +27,7 @@
 <body>
 
 <div class="card">
-    <h2>CampusVerify Ultra</h2>
+    <h2 id="title">CampusVerify Ultra</h2>
 
     <div id="mainView">
         <button onclick="showView('loginView')">Teacher Login</button>
@@ -57,6 +50,7 @@
         <div id="cQR" class="qr-box hidden"></div>
         <div id="cDisplay" class="display-text" style="color:#00ffcc"></div>
         <hr style="border: 0.5px solid #333; margin: 20px 0;">
+        <h3>History Dashboard</h3>
         <button onclick="loadDashboard()" style="background:#28a745">?? Refresh History</button>
         <div id="historyList"></div>
         <button class="btn-success" onclick="downloadCSV()" style="margin-top:20px">?? Download Report</button>
@@ -73,8 +67,8 @@
             <button onclick="requestGPS()">Verify Codes & Location</button>
         </div>
         <div id="sMark" class="hidden">
-            <select id="studSelect"></select>
-            <button id="pBtn" onclick="markAttendance()">Submit Attendance</button>
+            <select id="sList"></select>
+            <button id="pBtn" onclick="submitFinal()">Submit Attendance</button>
         </div>
         <div id="status" style="margin-top:15px; font-size:14px; color:var(--primary);">Ready</div>
         <button class="btn-back" onclick="showView('mainView')">Back Home</button>
@@ -83,14 +77,14 @@
 
 <div id="modal">
     <div class="modal-box">
-        <h3>Absent Students</h3>
+        <h3 style="color:#ff4b2b">Absent Students</h3>
         <div id="absentNames" style="text-align: left; line-height: 2;"></div>
         <button onclick="closeModal()" style="margin-top:20px; background:#444">Close</button>
     </div>
 </div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbxpqFaurIHSBZLwT69EEEHhkcgoPRQ0HvqEUUurwDuQ3kf4aE3k3FfFVBv49HM53INl5A/exec"; 
+    const SURL = "https://script.google.com/macros/s/AKfycbw_VCsvJh48klDx2258U0n1s5OXij_JtecFG_eYVLvzhbrYQ-1dmyJfgvxF8L89_IBQ/exec"; // REPLACE THIS
     let uLat, uLon, students, dashboardData, activeSid;
 
     function showView(id) {
@@ -103,47 +97,76 @@
         const pass = document.getElementById('adminPass').value;
         const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: pass}) });
         const result = await res.text();
-        if (result.trim() === "SUCCESS") showView('teacherView');
+        if (result === "SUCCESS") showView('teacherView');
         else alert("Unauthorized Access");
     }
 
     function checkStudentAccess() {
-        if (localStorage.getItem("att_lock") === new Date().toLocaleDateString()) alert("Already marked today.");
-        else showView('studentView');
+        if (localStorage.getItem("att_lock") === new Date().toLocaleDateString()) {
+            alert("Device Locked: You have already marked your attendance today.");
+            showView('mainView');
+        } else {
+            showView('studentView');
+        }
     }
 
+    // --- GPS & VERIFY LOGIC ---
     function requestGPS() {
         const sid = document.getElementById('isid').value.trim();
         const vco = document.getElementById('icode').value.trim();
         if(!sid || !vco) return alert("Enter codes first");
-        document.getElementById('status').innerText = "?? Getting Fresh GPS Signal...";
+
+        document.getElementById('status').innerText = "??? Refreshing GPS Signal...";
         navigator.geolocation.getCurrentPosition(pos => {
             uLat = pos.coords.latitude;
             uLon = pos.coords.longitude;
-            verifyCodes();
+            verifyAndCheckLocation(); 
         }, () => alert("GPS Permission Denied"), { enableHighAccuracy: true, maximumAge: 0 });
     }
 
-    async function verifyCodes() {
-        const sid = document.getElementById('isid').value.trim();
-        const vco = document.getElementById('icode').value.trim();
-        const res = await fetch(SURL + "?action=getSessions");
-        const sessions = await res.json();
-        const match = sessions.find(x => x.session === sid && x.code === vco);
-        if(match) {
-            const sRes = await fetch(SURL + "?action=getStudents");
-            students = await sRes.json();
-            document.getElementById('sVerify').classList.add('hidden');
-            document.getElementById('sMark').classList.remove('hidden');
-            document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-            document.getElementById('status').innerText = "Location OK. Select Name.";
-        } else alert("Invalid Code");
+    async function verifyAndCheckLocation() {
+        const status = document.getElementById('status');
+        status.innerText = "Verifying Location & Codes...";
+
+        try {
+            // 1. Check Distance first
+            const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`);
+            const locData = await locRes.json();
+
+            if (locData.status === "OUT_OF_RANGE") {
+                alert(`? SECURITY REJECTION: You are ${locData.distance} km away from campus.`);
+                status.innerText = "? Too far from college.";
+                return;
+            }
+
+            // 2. Check Codes
+            const sid = document.getElementById('isid').value.trim();
+            const vco = document.getElementById('icode').value.trim();
+            const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
+            const sessions = await res.json();
+            const match = sessions.find(x => x.session === sid && x.code === vco);
+            
+            if(match) {
+                status.innerText = "Loading student list...";
+                const sRes = await fetch(SURL + "?action=getStudents");
+                students = await sRes.json();
+                document.getElementById('sVerify').classList.add('hidden');
+                document.getElementById('sMark').classList.remove('hidden');
+                document.getElementById('sList').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
+                status.innerText = "? Location & Codes OK.";
+            } else {
+                alert("Invalid Session ID or Code.");
+                status.innerText = "? Invalid Codes.";
+            }
+        } catch(e) { status.innerText = "? Connection Error."; }
     }
 
-    async function markAttendance() {
+    async function submitFinal() {
         const btn = document.getElementById('pBtn');
-        const stud = students[document.getElementById('studSelect').value];
+        const stud = students[document.getElementById('sList').value];
         btn.disabled = true;
+        document.getElementById('status').innerText = "Registering...";
+
         const res = await fetch(SURL, { method: "POST", body: JSON.stringify({
             type: "markPresent", session: document.getElementById('isid').value,
             name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon
@@ -153,10 +176,6 @@
             localStorage.setItem("att_lock", new Date().toLocaleDateString());
             document.getElementById('status').innerText = "? Attendance Marked!";
             document.getElementById('sMark').innerHTML = "<h3>Success!</h3>";
-        } else if (result.startsWith("OUT_OF_RANGE")) {
-            const dist = result.split("_")[2];
-            alert("SECURITY ALERT: You are " + dist + " km away from the campus. Attendance Rejected!");
-            btn.disabled = false;
         } else alert(result);
     }
 
@@ -187,9 +206,9 @@
         } catch(e) { h.innerText = "No sessions."; }
     }
 
-    function openAbsents(idx) {
-        const names = dashboardData[idx].absentNames;
-        document.getElementById('absentNames').innerHTML = names.length > 0 ? names.map(n => "• " + n).join("<br>") : "No absents!";
+    function openAbsents(i) {
+        const names = dashboardData[i].absentNames;
+        document.getElementById('absentNames').innerHTML = names.length > 0 ? names.map(n => "• " + n).join("<br>") : "Everyone is present!";
         document.getElementById('modal').style.display = 'flex';
     }
 
@@ -197,12 +216,6 @@
     async function downloadCSV() { const res = await fetch(SURL + "?action=downloadReport"); const data = await res.json(); let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n"); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "Attendance.csv"; link.click(); }
     async function resetAttendance() { if(confirm("Reset Present list?")) await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetAttendance"}) }); location.reload(); }
     async function resetSessions() { if(confirm("Reset History?")) await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetSessions"}) }); location.reload(); }
-    
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js')
-        .then(() => console.log("Service Worker Registered"))
-        .catch((err) => console.log("Service Worker Failed", err));
-    }
 </script>
 </body>
 </html>
