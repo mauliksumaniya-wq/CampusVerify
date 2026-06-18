@@ -3,15 +3,20 @@
   "short_name": "CampusVerify",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#121212",
+  "background_color": "#0f2027",
   "theme_color": "#00c6ff",
-  "description": "Professional QR-based attendance system for college students.",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+      "src": "icon.png",   <-- MUST BE icon.png
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",   <-- MUST BE icon.png
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ]
 }
