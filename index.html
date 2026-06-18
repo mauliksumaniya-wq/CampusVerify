@@ -197,6 +197,12 @@
     async function downloadCSV() { const res = await fetch(SURL + "?action=downloadReport"); const data = await res.json(); let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n"); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "Attendance.csv"; link.click(); }
     async function resetAttendance() { if(confirm("Reset Present list?")) await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetAttendance"}) }); location.reload(); }
     async function resetSessions() { if(confirm("Reset History?")) await fetch(SURL, { method: "POST", body: JSON.stringify({type:"resetSessions"}) }); location.reload(); }
+    
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js')
+        .then(() => console.log("Service Worker Registered"))
+        .catch((err) => console.log("Service Worker Failed", err));
+    }
 </script>
 </body>
 </html>
