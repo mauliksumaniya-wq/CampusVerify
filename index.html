@@ -96,7 +96,7 @@
 </div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbw7bT-UL2Q6JYBeIkTicOUg-dIUc7fzpqCqDxZKVHbSl1uhqlH7iayLM-TfwuXVTKSlzA/exec"; // REPLACE THIS
+    const SURL = "https://script.google.com/macros/s/AKfycbw6bVHAzCNqU-IDMaR7ZS6y7g13TpeQzolw81Vnrq8mE86qY41ARehJmfXA_PQBlYkBVQ/exec"; // REPLACE THIS
     let uLat, uLon, students, dashboardData, activeSid;
 
     function showView(id) {
@@ -136,52 +136,57 @@
         }, () => alert("GPS Permission Denied"), { enableHighAccuracy: true, maximumAge: 0 });
     }
 
-    async function verifyAndCheckLocation() {
+   async function verifyAndCheckLocation() {
     const status = document.getElementById('status');
     const sid = document.getElementById('isid').value.trim();
     const vco = document.getElementById('icode').value.trim();
-    if(!sid || !vco) return alert("⚠️ Please enter both codes.");
+    if(!sid || !vco) return alert("⚠️ Enter codes first.");
 
-    status.innerText = "🔍 Syncing with Server...";
+    status.innerText = "🔍 Checking Location...";
 
     try {
-        // 1. Fetch distance and status from the server
         const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`);
         const locData = await locRes.json();
-        const dist = locData.distance;
 
-        // 2. CHECK: If distance is too far (ONE ALERT ONLY)
         if (locData.status === "OUT_OF_RANGE") {
-            status.innerText = "❌ Security Rejection";
-            // This is the ONLY alert the student sees when at home
-            alert("🛑 SECURITY ALERT\n\nDistance: " + dist + " km away.\n\nYou are outside the allowed college campus radius. Attendance rejected.");
-            return; // Stops the app here
+            alert(`🛑 SECURITY REJECTION\n\nDistance: ${locData.distance} km.\n\nYou are too far from college.`);
+            status.innerText = "❌ Location Rejected";
+            return;
         }
 
-        // 3. SUCCESS: If distance is OK (ONE ALERT ONLY)
+        // Location is OK, proceed
         status.innerText = "🔑 Verifying Codes...";
-        alert("✅ LOCATION VERIFIED\n\nDistance: " + dist + " km.\n\nYou are inside the campus. Now checking codes...");
-
-        // 4. Verify the Session ID and Code
         const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
         const sessions = await res.json();
         const match = sessions.find(x => x.session === sid && x.code === vco);
         
         if(match) {
-            status.innerText = "📥 Loading Student List...";
-            const sRes = await fetch(SURL + "?action=getStudents");
-            students = await sRes.json();
+            status.innerText = "📥 Loading Students...";
+            const sRes = await fetch(`${SURL}?action=getStudents`);
+            const sData = await sRes.json();
             
-            document.getElementById('sVerify').classList.add('hidden');
-            document.getElementById('sMark').classList.remove('hidden');
-            document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-            status.innerText = "✅ Verification Complete";
+            // Check if students were found
+            if (sData && sData.length > 0) {
+                students = sData;
+                document.getElementById('sVerify').classList.add('hidden');
+                document.getElementById('sMark').classList.remove('hidden');
+                
+                const select = document.getElementById('studSelect');
+                select.innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
+                
+                alert("✅ VERIFIED\n\nLocation: " + locData.distance + " km\n\nStudent list loaded. Select your name.");
+                status.innerText = "✅ Verification Complete";
+            } else {
+                alert("❌ ERROR: Student list is empty in Google Sheets!");
+                status.innerText = "❌ No students found in database.";
+            }
         } else {
-            alert("❌ INVALID CODES\n\nThe Session ID or Code is incorrect.");
+            alert("❌ Invalid Session ID or Code.");
             status.innerText = "❌ Code Error";
         }
     } catch(e) { 
-        status.innerText = "❌ Server error"; 
+        console.error(e);
+        status.innerText = "❌ Connection failed"; 
     }
 }
 
