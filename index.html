@@ -40,6 +40,28 @@
     <div id="mainView">
         <button onclick="showView('loginView')">👨‍🏫 Teacher Portal</button>
         <button onclick="checkStudentAccess()">🎓 Student Portal</button>
+
+        <div style="text-align: left; background: rgba(0, 198, 255, 0.05); padding: 20px; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(0, 198, 255, 0.2); box-shadow: inset 0 0 20px rgba(0,0,0,0.2);">
+            <h4 style="margin-top: 0; color: var(--primary); font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                🚀 Quick Start Guide:
+            </h4>
+            <ol style="font-size: 13px; padding-left: 18px; line-height: 1.8; color: #d1d1d1; margin-bottom: 0;">
+                <li>Get <b>Session ID</b> & <b>Code</b> from your teacher.</li>
+                <li>Ensure phone <b>GPS / Location</b> is turned ON.</li>
+                <li>Click the <b>🎓 Student Portal</b> button above.</li>
+                <li>Enter codes and click on <b>🛰️ Verify</b>.</li>
+                <li><b>Please wait</b> while the system identifies your location.</li>
+                <li>Once identified, <b>select your name</b> from the list and click confirm.</li>
+            </ol>
+            
+            <!-- PRIVACY SHIELD NOTE -->
+            <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 15px; display: flex; gap: 12px; align-items: center;">
+                <div style="background: rgba(0, 255, 204, 0.1); padding: 8px; border-radius: 50%; font-size: 18px;">🛡️</div>
+                <p style="font-size: 11px; color: #a0acb8; line-height: 1.5; margin: 0; font-style: italic;">
+                    <b>Safe & Secure:</b> This app <u>cannot</u> save or share your live location with anyone. It only calculates the distance to college to verify your presence.
+                </p>
+            </div>
+        </div>
     </div>
 
     <div id="loginView" class="hidden">
