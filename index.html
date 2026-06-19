@@ -42,8 +42,8 @@
     <h2 id="title">CampusVerify Ultra</h2>
 
     <div id="mainView">
-        <button onclick="showView('loginView')">Teacher Login</button>
-        <button onclick="checkStudentAccess()">Student Portal</button>
+        <button onclick="showView('loginView')">👨‍🏫 Teacher Portal</button>
+        <button onclick="checkStudentAccess()">🎓 Student Portal</button>
     </div>
 
     <!-- TEACHER LOGIN -->
@@ -65,9 +65,9 @@
         <h3>History Dashboard</h3>
         <button onclick="loadDashboard()" style="background:#28a745">?? Refresh History</button>
         <div id="historyList"></div>
-        <button class="btn-success" onclick="downloadCSV()" style="margin-top:20px">?? Download Report</button>
-        <button class="btn-danger" onclick="resetAttendance()">??? Reset Attendance</button>
-        <button class="btn-danger" onclick="resetSessions()" style="background:#cc0000">??? Reset History</button>
+        <button class="btn-success" onclick="downloadCSV()" style="margin-top:20px">📥 Download Master Report</button>
+        <button class="btn-danger" onclick="resetAttendance()">🗑️ Reset Attendance</button>
+        <button class="btn-danger" onclick="resetSessions()" style="background:#cc0000">📜 Reset Session History</button>
         <button class="btn-back" onclick="showView('mainView')" style="margin-top:20px">Logout</button>
     </div>
 
@@ -76,11 +76,11 @@
         <div id="sVerify">
             <input id="isid" placeholder="Session ID">
             <input id="icode" placeholder="Verify Code">
-            <button onclick="requestGPS()">Verify Codes & Location</button>
+            <button onclick="requestGPS()">🛰️ Verify Codes & Location</button>
         </div>
         <div id="sMark" class="hidden">
             <select id="sList"></select>
-            <button id="pBtn" onclick="submitFinal()">Submit Attendance</button>
+            <button id="pBtn" onclick="submitFinal()">✅ Confirm My Attendance</button>
         </div>
         <div id="status" style="margin-top:15px; font-size:14px; color:var(--primary);">Ready</div>
         <button class="btn-back" onclick="showView('mainView')">Back Home</button>
