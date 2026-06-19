@@ -96,7 +96,7 @@
 </div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbw_VCsvJh48klDx2258U0n1s5OXij_JtecFG_eYVLvzhbrYQ-1dmyJfgvxF8L89_IBQ/exec"; // REPLACE THIS
+    const SURL = "https://script.google.com/macros/s/AKfycbzgZq9F1KI0-kTwN4QTvGXhqraEv7yobdQbAISDZzLbV8skIRpF6VOpynd9Zj31Ma4g-A/exec"; // REPLACE THIS
     let uLat, uLon, students, dashboardData, activeSid;
 
     function showView(id) {
@@ -137,41 +137,41 @@
     }
 
     async function verifyAndCheckLocation() {
-        const status = document.getElementById('status');
-        status.innerText = "Verifying Location & Codes...";
+    const status = document.getElementById('status');
+    const sid = document.getElementById('isid').value.trim();
+    const vco = document.getElementById('icode').value.trim();
+    
+    status.innerText = "⚡ Rapid Verification in progress...";
 
-        try {
-            // 1. Check Distance first
-            const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`);
-            const locData = await locRes.json();
+    try {
+        // ONE REQUEST DOES EVERYTHING
+        const url = `${SURL}?action=verifyAll&lat=${uLat}&lon=${uLon}&sid=${sid}&code=${vco}`;
+        const res = await fetch(url);
+        const data = await res.json();
 
-            if (locData.status === "OUT_OF_RANGE") {
-                alert(`? SECURITY REJECTION: You are ${locData.distance} km away from campus.`);
-                status.innerText = "? Too far from college.";
-                return;
-            }
+        if (data.status === "OUT_OF_RANGE") {
+            alert(`❌ Too far! You are ${data.distance} km away.`);
+            status.innerText = "❌ Distance Rejection";
+            return;
+        }
 
-            // 2. Check Codes
-            const sid = document.getElementById('isid').value.trim();
-            const vco = document.getElementById('icode').value.trim();
-            const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
-            const sessions = await res.json();
-            const match = sessions.find(x => x.session === sid && x.code === vco);
-            
-            if(match) {
-                status.innerText = "Loading student list...";
-                const sRes = await fetch(SURL + "?action=getStudents");
-                students = await sRes.json();
-                document.getElementById('sVerify').classList.add('hidden');
-                document.getElementById('sMark').classList.remove('hidden');
-                document.getElementById('sList').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-                status.innerText = "? Location & Codes OK.";
-            } else {
-                alert("Invalid Session ID or Code.");
-                status.innerText = "? Invalid Codes.";
-            }
-        } catch(e) { status.innerText = "? Connection Error."; }
+        if (data.status === "INVALID_CODE") {
+            alert("❌ Invalid Session ID or Code.");
+            status.innerText = "❌ Code Rejection";
+            return;
+        }
+
+        if (data.status === "SUCCESS") {
+            students = data.students; // List is already here!
+            document.getElementById('sVerify').classList.add('hidden');
+            document.getElementById('sMark').classList.remove('hidden');
+            document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
+            status.innerText = "✅ Verified & List Loaded";
+        }
+    } catch(e) { 
+        status.innerText = "❌ Server error. Try again."; 
     }
+}
 
     async function submitFinal() {
         const btn = document.getElementById('pBtn');
