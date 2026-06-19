@@ -96,7 +96,7 @@
 </div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbzgZq9F1KI0-kTwN4QTvGXhqraEv7yobdQbAISDZzLbV8skIRpF6VOpynd9Zj31Ma4g-A/exec"; // REPLACE THIS
+    const SURL = "https://script.google.com/macros/s/AKfycby18H5CGbgeBHuo1ZhxyvHrfvZGivUZskKysHidmsIezVKt2NVHwiKbd9XtC72FOK3vpg/exec"; // REPLACE THIS
     let uLat, uLon, students, dashboardData, activeSid;
 
     function showView(id) {
@@ -136,40 +136,49 @@
         }, () => alert("GPS Permission Denied"), { enableHighAccuracy: true, maximumAge: 0 });
     }
 
-    async function verifyAndCheckLocation() {
+    sync function verifyAndCheckLocation() {
     const status = document.getElementById('status');
     const sid = document.getElementById('isid').value.trim();
     const vco = document.getElementById('icode').value.trim();
     
+    if(!sid || !vco) return alert("⚠️ Please enter Session ID and Code");
+
     status.innerText = "⚡ Rapid Verification in progress...";
 
     try {
-        // ONE REQUEST DOES EVERYTHING
-        const url = `${SURL}?action=verifyAll&lat=${uLat}&lon=${uLon}&sid=${sid}&code=${vco}`;
+        // Combined request for location, session, and student list
+        const url = `${SURL}?action=verifyAll&lat=${uLat}&lon=${uLon}&sid=${encodeURIComponent(sid)}&code=${encodeURIComponent(vco)}`;
         const res = await fetch(url);
         const data = await res.json();
 
+        if (data.status === "ERROR") {
+            alert("System Error: " + data.message);
+            status.innerText = "❌ Backend Error";
+            return;
+        }
+
         if (data.status === "OUT_OF_RANGE") {
-            alert(`❌ Too far! You are ${data.distance} km away.`);
-            status.innerText = "❌ Distance Rejection";
+            alert(`❌ SECURITY ALERT: You are ${data.distance} km away from campus.`);
+            status.innerText = "❌ Too far from college.";
             return;
         }
 
         if (data.status === "INVALID_CODE") {
             alert("❌ Invalid Session ID or Code.");
-            status.innerText = "❌ Code Rejection";
+            status.innerText = "❌ Incorrect Codes";
             return;
         }
 
         if (data.status === "SUCCESS") {
-            students = data.students; // List is already here!
+            students = data.students; 
             document.getElementById('sVerify').classList.add('hidden');
             document.getElementById('sMark').classList.remove('hidden');
             document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-            status.innerText = "✅ Verified & List Loaded";
+            status.innerText = "✅ Location & Codes Verified";
         }
     } catch(e) { 
-        status.innerText = "❌ Server error. Try again."; 
+        console.error(e);
+        status.innerText = "❌ Server Connection Failed"; 
     }
 }
 
