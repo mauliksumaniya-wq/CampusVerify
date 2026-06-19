@@ -140,27 +140,29 @@
     const status = document.getElementById('status');
     const sid = document.getElementById('isid').value.trim();
     const vco = document.getElementById('icode').value.trim();
-    if(!sid || !vco) return alert("⚠️ Please enter Session ID and Code");
+    if(!sid || !vco) return alert("⚠️ Please enter both codes.");
 
-    status.innerText = "🔍 Checking Location...";
+    status.innerText = "🔍 Syncing with Server...";
 
     try {
-        // 1. Get distance from server
+        // 1. Fetch distance and status from the server
         const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`);
         const locData = await locRes.json();
         const dist = locData.distance;
 
-        // 2. Handle Rejection (Only ONE Alert here)
+        // 2. CHECK: If distance is too far (ONE ALERT ONLY)
         if (locData.status === "OUT_OF_RANGE") {
-            alert(`❌ ACCESS DENIED\nDistance: ${dist} km away.\nYou must be within 0.2 km of the college.`);
-            status.innerText = "❌ Security Rejection: Too far.";
-            return; 
+            status.innerText = "❌ Security Rejection";
+            // This is the ONLY alert the student sees when at home
+            alert("🛑 SECURITY ALERT\n\nDistance: " + dist + " km away.\n\nYou are outside the allowed college campus radius. Attendance rejected.");
+            return; // Stops the app here
         }
 
-        // 3. Handle Success (Only ONE Alert here)
-        alert(`✅ LOCATION VERIFIED\nDistance: ${dist} km.\nNow verifying codes...`);
+        // 3. SUCCESS: If distance is OK (ONE ALERT ONLY)
         status.innerText = "🔑 Verifying Codes...";
+        alert("✅ LOCATION VERIFIED\n\nDistance: " + dist + " km.\n\nYou are inside the campus. Now checking codes...");
 
+        // 4. Verify the Session ID and Code
         const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
         const sessions = await res.json();
         const match = sessions.find(x => x.session === sid && x.code === vco);
@@ -173,13 +175,13 @@
             document.getElementById('sVerify').classList.add('hidden');
             document.getElementById('sMark').classList.remove('hidden');
             document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-            status.innerText = "✅ Codes & Location OK";
+            status.innerText = "✅ Verification Complete";
         } else {
-            alert("❌ INVALID CODES\nThe Session ID or Code is incorrect.");
+            alert("❌ INVALID CODES\n\nThe Session ID or Code is incorrect.");
             status.innerText = "❌ Code Error";
         }
     } catch(e) { 
-        status.innerText = "❌ Connection failed"; 
+        status.innerText = "❌ Server error"; 
     }
 }
 
