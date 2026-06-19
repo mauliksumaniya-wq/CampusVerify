@@ -140,26 +140,27 @@
     const status = document.getElementById('status');
     const sid = document.getElementById('isid').value.trim();
     const vco = document.getElementById('icode').value.trim();
-    if(!sid || !vco) return alert("⚠️ Enter codes first");
+    if(!sid || !vco) return alert("⚠️ Please enter Session ID and Code");
 
-    status.innerText = "🔍 Checking Proximity...";
+    status.innerText = "🔍 Checking Location...";
 
     try {
-        // 1. Check Distance
+        // 1. Get distance from server
         const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`);
         const locData = await locRes.json();
+        const dist = locData.distance;
 
-        // THIS SHOWS THE DISTANCE TO THE STUDENT
-        alert("Distance to College: " + locData.distance + " km");
-
+        // 2. Handle Rejection (Only ONE Alert here)
         if (locData.status === "OUT_OF_RANGE") {
-            status.innerText = "❌ Too far from campus.";
-            alert(`❌ SECURITY ALERT: You are ${locData.distance} km away. You must be at college.`);
-            return;
+            alert(`❌ ACCESS DENIED\nDistance: ${dist} km away.\nYou must be within 0.2 km of the college.`);
+            status.innerText = "❌ Security Rejection: Too far.";
+            return; 
         }
 
-        // 2. If Distance is OK, Verify Codes
+        // 3. Handle Success (Only ONE Alert here)
+        alert(`✅ LOCATION VERIFIED\nDistance: ${dist} km.\nNow verifying codes...`);
         status.innerText = "🔑 Verifying Codes...";
+
         const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
         const sessions = await res.json();
         const match = sessions.find(x => x.session === sid && x.code === vco);
@@ -172,13 +173,13 @@
             document.getElementById('sVerify').classList.add('hidden');
             document.getElementById('sMark').classList.remove('hidden');
             document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-            status.innerText = "✅ Location & Codes Verified";
+            status.innerText = "✅ Codes & Location OK";
         } else {
-            alert("❌ Invalid Session ID or Code");
+            alert("❌ INVALID CODES\nThe Session ID or Code is incorrect.");
             status.innerText = "❌ Code Error";
         }
     } catch(e) { 
-        status.innerText = "❌ Connection error"; 
+        status.innerText = "❌ Connection failed"; 
     }
 }
 
