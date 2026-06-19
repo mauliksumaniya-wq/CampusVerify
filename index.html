@@ -96,7 +96,7 @@
 </div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycby18H5CGbgeBHuo1ZhxyvHrfvZGivUZskKysHidmsIezVKt2NVHwiKbd9XtC72FOK3vpg/exec"; // REPLACE THIS
+    const SURL = "https://script.google.com/macros/s/AKfycbw7bT-UL2Q6JYBeIkTicOUg-dIUc7fzpqCqDxZKVHbSl1uhqlH7iayLM-TfwuXVTKSlzA/exec"; // REPLACE THIS
     let uLat, uLon, students, dashboardData, activeSid;
 
     function showView(id) {
@@ -136,49 +136,49 @@
         }, () => alert("GPS Permission Denied"), { enableHighAccuracy: true, maximumAge: 0 });
     }
 
-    sync function verifyAndCheckLocation() {
+    async function verifyAndCheckLocation() {
     const status = document.getElementById('status');
     const sid = document.getElementById('isid').value.trim();
     const vco = document.getElementById('icode').value.trim();
-    
-    if(!sid || !vco) return alert("⚠️ Please enter Session ID and Code");
+    if(!sid || !vco) return alert("⚠️ Enter codes first");
 
-    status.innerText = "⚡ Rapid Verification in progress...";
+    status.innerText = "🔍 Checking Proximity...";
 
     try {
-        // Combined request for location, session, and student list
-        const url = `${SURL}?action=verifyAll&lat=${uLat}&lon=${uLon}&sid=${encodeURIComponent(sid)}&code=${encodeURIComponent(vco)}`;
-        const res = await fetch(url);
-        const data = await res.json();
+        // 1. Check Distance
+        const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`);
+        const locData = await locRes.json();
 
-        if (data.status === "ERROR") {
-            alert("System Error: " + data.message);
-            status.innerText = "❌ Backend Error";
+        // THIS SHOWS THE DISTANCE TO THE STUDENT
+        alert("Distance to College: " + locData.distance + " km");
+
+        if (locData.status === "OUT_OF_RANGE") {
+            status.innerText = "❌ Too far from campus.";
+            alert(`❌ SECURITY ALERT: You are ${locData.distance} km away. You must be at college.`);
             return;
         }
 
-        if (data.status === "OUT_OF_RANGE") {
-            alert(`❌ SECURITY ALERT: You are ${data.distance} km away from campus.`);
-            status.innerText = "❌ Too far from college.";
-            return;
-        }
-
-        if (data.status === "INVALID_CODE") {
-            alert("❌ Invalid Session ID or Code.");
-            status.innerText = "❌ Incorrect Codes";
-            return;
-        }
-
-        if (data.status === "SUCCESS") {
-            students = data.students; 
+        // 2. If Distance is OK, Verify Codes
+        status.innerText = "🔑 Verifying Codes...";
+        const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
+        const sessions = await res.json();
+        const match = sessions.find(x => x.session === sid && x.code === vco);
+        
+        if(match) {
+            status.innerText = "📥 Loading Student List...";
+            const sRes = await fetch(SURL + "?action=getStudents");
+            students = await sRes.json();
+            
             document.getElementById('sVerify').classList.add('hidden');
             document.getElementById('sMark').classList.remove('hidden');
             document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
             status.innerText = "✅ Location & Codes Verified";
+        } else {
+            alert("❌ Invalid Session ID or Code");
+            status.innerText = "❌ Code Error";
         }
     } catch(e) { 
-        console.error(e);
-        status.innerText = "❌ Server Connection Failed"; 
+        status.innerText = "❌ Connection error"; 
     }
 }
 
