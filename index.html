@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CampusVerify Ultra</title>
+    
+    <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+    
     <style>
         :root { --primary: #00c6ff; --bg: #0f2027; --card: #1a2a33; --success: #00ffcc; --danger: #ff4b2b; }
         body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: white; text-align: center; margin: 0; padding: 15px; }
@@ -17,11 +20,13 @@
         .btn-success { background: linear-gradient(135deg, #00ffcc, #00ab89); }
         .btn-danger { background: linear-gradient(135deg, #ff4b2b, #ff0000); }
         .hidden { display: none !important; }
+        .qr-box { background: white; padding: 12px; width: 160px; height: 160px; margin: 20px auto; border-radius: 16px; }
         .display-text { font-size: 20px; font-weight: 900; margin: 15px 0; color: var(--primary); }
         .session-item { background: rgba(0,0,0,0.2); padding: 18px; border-radius: 16px; margin-top: 15px; text-align: left; border-left: 5px solid var(--primary); }
         .stat-line { display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px; }
         .absent-link { color: var(--danger); font-weight: bold; text-decoration: underline; cursor: pointer; }
-        #modal, #leaveModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; }
+        
+        #modal, #leaveModal, #confirmModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; }
         .modal-box { background: var(--card); padding: 20px; border-radius: 25px; width: 95%; max-width: 750px; border: 1px solid #444; }
         .letter-box { background: white; color: black !important; padding: 45px; border-radius: 4px; text-align: left; font-family: 'Times New Roman', Times, serif; line-height: 1.8; font-size: 16px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
         .letter-input { border: none; border-bottom: 1px solid #777; font-family: inherit; font-size: inherit; background: transparent; padding: 0 5px; color: black !important; }
@@ -43,13 +48,14 @@
         <div style="text-align: left; background: rgba(0, 198, 255, 0.05); padding: 20px; border-radius: 20px; margin-top: 25px; border: 1px solid rgba(0, 198, 255, 0.2);">
             <h4 style="margin-top: 0; color: var(--primary); font-size: 17px; display: flex; align-items: center; gap: 8px;">&#x1F680; Quick Start Guide:</h4>
             <ol style="font-size: 13.5px; padding-left: 20px; line-height: 1.8; color: #d1d1d1; margin-bottom: 0;">
-                <li>📱 Ensure your <b>Internet</b> is active.</li>
-                <li>🛰️ Turn <b>ON</b> your phone <b>GPS / Location</b>.</li>
-                <li>🔑 Get <b>Session ID</b> & <b>Code</b> from teacher.</li>
-                <li>🎓 Enter codes in <b>Student Portal</b>.</li>
-                <li>🛰️ Click <b>Verify</b> and wait for sync.</li>
-                <li>✅ <b>Select Name</b> & click confirm.</li>
+                <li>&#x1F4F1; Ensure your <b>Internet</b> is active.</li>
+                <li>&#x1F6F0; Turn <b>ON</b> your phone <b>GPS / Location</b>.</li>
+                <li>&#x1F511; Get <b>Session ID</b> & <b>Code</b> from teacher.</li>
+                <li>&#x1F393; Enter codes in <b>Student Portal</b>.</li>
+                <li>&#x1F6F0; Click <b>Verify</b> and wait for sync.</li>
+                <li>&#x2705; <b>Select Name</b> & click confirm.</li>
             </ol>
+            
             <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 15px; display: flex; gap: 12px; align-items: center;">
                 <div style="background: rgba(0, 255, 204, 0.1); padding: 8px; border-radius: 50%; font-size: 18px;">&#x1F6E1;</div>
                 <p style="font-size: 11px; color: #a0acb8; line-height: 1.5; margin: 0; font-style: italic;">
@@ -69,8 +75,11 @@
 
     <div id="teacherView" class="hidden">
         <button onclick="hCreateSession()">&#x2795; 1. Create Session ID</button>
+        <div id="sQR" class="qr-box hidden"></div>
         <div id="sDisplay" class="display-text"></div>
+        
         <button onclick="hCreateCode()">&#x1F511; 2. Generate Verify Code</button>
+        <div id="cQR" class="qr-box hidden"></div>
         <div id="cDisplay" class="display-text" style="color:var(--success)"></div>
 
         <hr style="border: 0.5px solid #33444d; margin: 25px 0;">
@@ -85,7 +94,7 @@
         <div id="historyList"></div>
         <button class="btn-success" onclick="downloadCSV()">&#x1F4E5; Download Report</button>
         <button class="btn-danger" onclick="confirmReset('att')">&#x1F5D1; Reset Attendance</button>
-        <button class="btn-danger" onclick="confirmReset('sess')" style="opacity:0.7">&#x1F5D1; Reset History</button>
+        <button class="btn-danger" onclick="confirmReset('sess')" style="opacity: 0.7;">&#x1F5D1; Reset History</button>
         <button class="btn-secondary" onclick="showView('mainView')" style="margin-top:20px">&#x1F6AA; Logout</button>
     </div>
 
@@ -130,7 +139,7 @@
             <div id="rangeArea" class="hidden">
                 <b>Selection Mode:</b> 
                 <select id="dateMode" class="letter-input" onchange="toggleDateOptions()">
-                    <option value="single">Single Day</option>
+                    <option value="single">Single Day (One Date)</option>
                     <option value="range">Date to Date</option>
                 </select><br>
                 <div id="singleOutDate" style="margin-top:10px;"><b>Date:</b> <input id="lDateOutSingle" type="date" class="letter-input"></div>
@@ -169,7 +178,8 @@
     }
 
     async function doSecureLogin() {
-        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: document.getElementById('adminPass').value}) });
+        const pass = document.getElementById('adminPass').value;
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: pass}) });
         if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("&#x274C; Unauthorized", "error");
     }
 
@@ -179,8 +189,11 @@
         } else showView('studentView');
     }
 
+    // --- TEACHER ACTIONS ---
     async function hCreateSession() {
         activeSid = "SESS-" + Math.floor(100000 + Math.random()*900000);
+        document.getElementById('sQR').innerHTML = ""; document.getElementById('sQR').classList.remove('hidden');
+        new QRCode(document.getElementById('sQR'), { text: activeSid, width: 160, height: 160 });
         document.getElementById('sDisplay').innerText = activeSid;
         await fetch(SURL, { method: "POST", body: JSON.stringify({type:"createSession", session: activeSid}) });
     }
@@ -188,6 +201,8 @@
     async function hCreateCode() {
         if(!activeSid) return showNotify("&#x2795; Create Session First", "error");
         let code = Math.floor(1000 + Math.random()*8999).toString();
+        document.getElementById('cQR').innerHTML = ""; document.getElementById('cQR').classList.remove('hidden');
+        new QRCode(document.getElementById('cQR'), { text: code, width: 160, height: 160 });
         document.getElementById('cDisplay').innerText = "VERIFY: " + code;
         await fetch(SURL, { method: "POST", body: JSON.stringify({type:"updateCode", session: activeSid, code: code}) });
     }
@@ -206,6 +221,7 @@
         if(result === "SUCCESS") showNotify("&#x2705; Marked Present!", "success"); else showNotify("&#x26A0; Already Marked", "error");
     }
 
+    // --- LEAVE SYSTEM ---
     function toggleDateOptions() {
         const out = document.getElementById('lReason').value === "an Out of Station Trip";
         const isRange = document.getElementById('dateMode').value === "range";
@@ -217,9 +233,10 @@
     function updateSig() { document.getElementById('sigName').innerText = document.getElementById('lName').value || "_______"; }
     
     async function submitLeave() {
+        const mode = document.getElementById('dateMode').value;
         let d = document.getElementById('lDateSingle').value;
         if(document.getElementById('lReason').value === "an Out of Station Trip") {
-            d = (document.getElementById('dateMode').value === "single") ? document.getElementById('lDateOutSingle').value : document.getElementById('lDateFrom').value + " to " + document.getElementById('lDateTo').value;
+            d = (mode === "single") ? document.getElementById('lDateOutSingle').value : document.getElementById('lDateFrom').value + " to " + document.getElementById('lDateTo').value;
         }
         const data = { type:"submitLeave", name:document.getElementById('lName').value, class:document.getElementById('lClass').value, roll:document.getElementById('lRoll').value, address:document.getElementById('lAddress').value + " [Ph: " + document.getElementById('lPhone').value + "] [Guard: " + document.getElementById('lGuard').value + "]", dates:d, reason:document.getElementById('lReason').value };
         await fetch(SURL, { method: "POST", body: JSON.stringify(data) });
@@ -233,12 +250,11 @@
             <div class="letter-box" style="margin-bottom:30px;">
                 <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px;"><h2 style="margin:0; font-family: serif; color: black;">ADARSH BCA COLLEGE - BOTAD</h2></div>
                 To,<br><b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
-                <b>Submission Date:</b> ${r[0]}<br><b>Subject: Formal Application for Grant of Leave of Absence</b><br><br>
+                <b>Submission Date:</b> ${r[0]}<br><b>Subject: Formal Application for Grant of Leave</b><br><br>
                 Respected Madam,<br><br>
-                With due respect and humble submission, I beg to state that I, <b>${r[1]}</b>, am a student of Class <b>${r[2]}</b>, Roll No <b>${r[3]}</b>. My residential address is ${r[4]}.<br><br>
+                I beg to state that I, <b>${r[1]}</b>, am a student of Class <b>${r[2]}</b>, Roll No <b>${r[3]}</b>. My address is ${r[4]}.<br><br>
                 I will be unable to attend college on date(s): <b>${r[5]}</b> because of <b>${r[6]}</b>.<br><br>
-                I request you to kindly grant me leave. I shall be highly obliged.<br><br>
-                Yours obediently,<br><br><b>Student Name: ${r[1]}</b> | Roll: ${r[3]}
+                Yours obediently, <b>${r[1]}</b>
                 <div style="display:flex; justify-content:space-between; margin-top:50px; font-size:12px;"><span>____________________<br>Teacher Sign</span><span>____________________<br>Principal Sign</span></div>
                 <div class="no-print" style="margin-top:30px; display:flex; gap:10px;">
                     <button onclick="downloadOne(${i})" style="background:#000; color:#fff; width:auto; padding:10px 15px;">&#x1F4E5; Download PDF</button>
@@ -262,6 +278,65 @@
         html2pdf().set({ margin: 10, filename: 'Leave_App.pdf', html2canvas: { scale: 3 } }).from(el).save();
     }
 
+    // --- STUDENT GPS LOGIC ---
+    function requestGPS() {
+        const sid = document.getElementById('isid').value.trim();
+        const vco = document.getElementById('icode').value.trim();
+        if(!sid || !vco) return showNotify("&#x26A0; Enter codes first", "error");
+
+        document.getElementById('status').innerText = "&#x1F6F0; Checking GPS Signal...";
+        navigator.geolocation.getCurrentPosition(pos => {
+            uLat = pos.coords.latitude; 
+            uLon = pos.coords.longitude;
+            verifyAndLoadData(); 
+        }, () => showNotify("&#x274C; GPS Denied", "error"), { enableHighAccuracy: true });
+    }
+
+    async function verifyAndLoadData() {
+        const status = document.getElementById('status');
+        try {
+            // 1. Distance Check
+            const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`);
+            const locData = await locRes.json();
+            showNotify("&#x1F4CD; Distance to Campus: " + locData.distance + " km");
+
+            if (locData.status === "OUT_OF_RANGE") {
+                status.innerText = "&#x274C; Too far from campus.";
+                return;
+            }
+
+            // 2. Code Verification
+            const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
+            const sessions = await res.json();
+            const sid = document.getElementById('isid').value.trim();
+            const vco = document.getElementById('icode').value.trim();
+            const match = sessions.find(x => x.session === sid && x.code === vco);
+
+            if(match) {
+                const sData = await (await fetch(`${SURL}?action=getStudents`)).json();
+                students = sData;
+                document.getElementById('sVerify').classList.add('hidden');
+                document.getElementById('sMark').classList.remove('hidden');
+                document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
+                status.innerText = "&#x2705; Location & Codes verified.";
+            } else showNotify("&#x274C; Invalid Codes", "error");
+        } catch(e) { status.innerText = "&#x274C; Error connecting."; }
+    }
+
+    async function submitFinal() {
+        const stud = students[document.getElementById('studSelect').value];
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({
+            type: "markPresent", session: document.getElementById('isid').value, 
+            name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon 
+        })});
+        const result = await res.text();
+        if(result === "SUCCESS") {
+            localStorage.setItem("att_lock", new Date().toLocaleDateString());
+            document.getElementById('sMark').innerHTML = "<h3>&#x2705; Success!</h3>";
+            document.getElementById('status').innerText = "&#x1F389; Attendance Recorded.";
+        } else showNotify("&#x26A0; Already Marked", "error");
+    }
+
     async function loadDashboard() {
         const res = await fetch(`${SURL}?action=getDashboard&t=${Date.now()}`);
         dashboardData = await res.json();
@@ -272,34 +347,6 @@
         if(confirm("&#x26A0; Reset permanently?")) {
             fetch(SURL, { method: "POST", body: JSON.stringify({type: type === 'att' ? "resetAttendance" : "resetSessions"}) }).then(() => location.reload());
         }
-    }
-
-    function requestGPS() {
-        navigator.geolocation.getCurrentPosition(pos => {
-            uLat = pos.coords.latitude; uLon = pos.coords.longitude; verifyAndLoadData(); 
-        }, () => showNotify("&#x274C; GPS Denied", "error"), { enableHighAccuracy: true });
-    }
-
-    async function verifyAndLoadData() {
-        const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
-        const sessions = await res.json();
-        const match = sessions.find(x => x.session === document.getElementById('isid').value && x.code === document.getElementById('icode').value);
-        if(match) {
-            students = await (await fetch(`${SURL}?action=getStudents`)).json();
-            document.getElementById('sVerify').classList.add('hidden');
-            document.getElementById('sMark').classList.remove('hidden');
-            document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-        } else showNotify("&#x274C; Invalid Codes", "error");
-    }
-
-    async function submitFinal() {
-        const stud = students[document.getElementById('studSelect').value];
-        await fetch(SURL, { method: "POST", body: JSON.stringify({type: "markPresent", session: document.getElementById('isid').value, name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon })});
-        const result = await res.text();
-        if(result === "SUCCESS") {
-            localStorage.setItem("att_lock", new Date().toLocaleDateString());
-            document.getElementById('sMark').innerHTML = "<h3>&#x2705; Success!</h3>";
-        } else showNotify("&#x26A0; Already Marked", "error");
     }
 
     function openAbsents(i) { document.getElementById('absentNames').innerHTML = dashboardData[i].absentNames.join("<br>"); document.getElementById('modal').style.display = 'flex'; }
