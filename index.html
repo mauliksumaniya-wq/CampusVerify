@@ -22,16 +22,12 @@
         .hidden { display: none !important; }
         .qr-box { background: white; padding: 12px; width: 160px; height: 160px; margin: 20px auto; border-radius: 16px; }
         .display-text { font-size: 20px; font-weight: 900; margin: 15px 0; color: var(--primary); }
-        
-        /* Big Distance Box Style */
         .dist-box { background: rgba(255,255,255,0.05); border: 2px solid var(--primary); padding: 20px; border-radius: 20px; margin: 15px 0; font-size: 18px; line-height: 1.5; }
         .dist-success { border-color: var(--success); color: var(--success); }
         .dist-error { border-color: var(--danger); color: var(--danger); }
-
         .session-item { background: rgba(0,0,0,0.2); padding: 18px; border-radius: 16px; margin-top: 15px; text-align: left; border-left: 5px solid var(--primary); }
         .stat-line { display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px; }
         .absent-link { color: var(--danger); font-weight: bold; text-decoration: underline; cursor: pointer; }
-        
         #modal, #leaveModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; }
         .modal-box { background: var(--card); padding: 20px; border-radius: 25px; width: 95%; max-width: 750px; border: 1px solid #444; }
         .letter-box { background: white; color: black !important; padding: 45px; border-radius: 4px; text-align: left; font-family: 'Times New Roman', Times, serif; line-height: 1.8; font-size: 16px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
@@ -58,10 +54,9 @@
                 <li>🛰️ Turn <b>ON</b> your phone <b>GPS / Location</b>.</li>
                 <li>🔑 Get <b>Session ID</b> & <b>Code</b> from teacher.</li>
                 <li>🎓 Enter codes in <b>Student Portal</b>.</li>
-                <li>🛰️ Click <b>Verify</b> and wait for sync.</li>
-                <li>✅ <b>Select Name</b> & click confirm.</li>
+                <li>🛰️ Click <b>Verify</b> and wait for location sync.</li>
+                <li>✅ <b>Select your Name</b> & click confirm.</li>
             </ol>
-            
             <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 15px; display: flex; gap: 12px; align-items: center;">
                 <div style="background: rgba(0, 255, 204, 0.1); padding: 8px; border-radius: 50%; font-size: 18px;">🛡️</div>
                 <p style="font-size: 11px; color: #a0acb8; line-height: 1.5; margin: 0; font-style: italic;">
@@ -83,24 +78,20 @@
         <button onclick="hCreateSession()">➕ 1. Create Session ID</button>
         <div id="sQR" class="qr-box hidden"></div>
         <div id="sDisplay" class="display-text"></div>
-        
         <button onclick="hCreateCode()">🔑 2. Generate Verify Code</button>
         <div id="cQR" class="qr-box hidden"></div>
         <div id="cDisplay" class="display-text" style="color:var(--success)"></div>
-
-        <hr style="border: 0.5px solid #33444d; margin: 25px 0;">
-        <h3>📋 Manual Attendance Entry</h3>
+        <hr>
+        <h3>📋 Manual Entry</h3>
         <select id="teacherStudList"></select>
-        <button class="btn-success" onclick="markManually()">✅ Mark Present Manually</button>
-        
-        <hr style="border: 0.5px solid #33444d; margin: 25px 0;">
-        <h3>📊 Attendance & Leaves</h3>
+        <button class="btn-success" onclick="markManually()">✅ Mark Present</button>
+        <hr>
         <button class="btn-secondary" onclick="loadDashboard()">🔄 Refresh History</button>
         <button style="background:#6a11cb" onclick="viewLeaves()">📩 View Student Leaves</button>
         <div id="historyList"></div>
         <button class="btn-success" onclick="downloadCSV()">📥 Download Report</button>
         <button class="btn-danger" onclick="confirmReset('att')">🗑️ Reset Attendance</button>
-        <button class="btn-danger" onclick="confirmReset('sess')" style="opacity: 0.7;">🗑️ Reset History</button>
+        <button class="btn-danger" onclick="confirmReset('sess')" style="opacity:0.7">🗑️ Reset History</button>
         <button class="btn-secondary" onclick="showView('mainView')" style="margin-top:20px">🚪 Logout</button>
     </div>
 
@@ -111,10 +102,7 @@
             <input id="icode" placeholder="Verify Code">
             <button onclick="requestGPS()">🛰️ Verify Codes & Location</button>
         </div>
-        
-        <!-- BIG DISTANCE BOX -->
         <div id="distanceDisplay" class="dist-box hidden"></div>
-
         <div id="sMark" class="hidden">
             <select id="studSelect"></select>
             <button id="pBtn" onclick="submitFinal()">✅ Confirm My Attendance</button>
@@ -126,14 +114,13 @@
     <!-- LEAVE FORM -->
     <div id="leaveFormView" class="hidden">
         <div class="letter-box">
-            <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 25px; padding-bottom: 10px;">
-                <h2 style="margin:0; font-family: serif; color: black;">ADARSH BCA COLLEGE - BOTAD</h2>
-                <p style="margin:5px 0; font-size:12px; color: black;">Official Portal for Student Leave Application</p>
+            <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px;">
+                <h2 style="margin:0;">ADARSH BCA COLLEGE - BOTAD</h2>
             </div>
-            To,<br><b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
+            To, <b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
             <b>Subject: Formal Application for Grant of Leave of Absence</b><br><br>
             Respected Madam,<br><br>
-            With due respect and humble submission, I beg to state that I, <input id="lName" class="letter-input" style="width:180px" placeholder="Student Full Name" oninput="updateSig()">, 
+            I, <input id="lName" class="letter-input" style="width:180px" placeholder="Student Full Name" oninput="updateSig()">, 
             am a student of Class <input id="lClass" class="letter-input" style="width:100px" placeholder="Enter Class">, 
             Roll No <input id="lRoll" class="letter-input" style="width:50px" placeholder="Roll No">. 
             My residential address is <input id="lAddress" class="letter-input" style="width:85%" placeholder="Enter Full Address">.<br><br>
@@ -149,8 +136,7 @@
             <div id="rangeArea" class="hidden">
                 <b>Selection Mode:</b> 
                 <select id="dateMode" class="letter-input" onchange="toggleDateOptions()">
-                    <option value="single">Single Day</option>
-                    <option value="range">Date to Date</option>
+                    <option value="single">Single Day</option><option value="range">Date to Date</option>
                 </select><br>
                 <div id="singleOutDate" style="margin-top:10px;"><b>Date:</b> <input id="lDateOutSingle" type="date" class="letter-input"></div>
                 <div id="rangeOutDate" class="hidden" style="margin-top:10px;">
@@ -169,11 +155,21 @@
 </div>
 
 <div id="modal"><div class="modal-box"><h3>❌ Absent Students</h3><div id="absentNames"></div><button class="btn-secondary" onclick="closeModal()">Close</button></div></div>
-<div id="leaveModal"><div class="modal-box"><h3>📩 Student Applications</h3><div id="pdfContainer"></div><button class="btn-secondary" onclick="closeLeaveModal()">Close Window</button></div></div>
+<div id="leaveModal"><div class="modal-box"><h3>📩 Leave Applications</h3><div id="pdfContainer"></div><button class="btn-secondary" onclick="closeLeaveModal()">Close Window</button></div></div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbzvw5gRK8eAeuZH3BRMbZ5kfRVnfIGfP9PH4fRECozFmz96ljbIlWl396DktcnPqJ49/exec"; 
+    const SURL = "https://script.google.com/macros/s/AKfycbzrvkTO3Q7TJjbUwRNWGEYOhYE4vPrXPqa0zDYYWQta-M0IUNwrYxY41O-iwxool1ddYQ/exec"; 
     let uLat, uLon, students, dashboardData, activeSid;
+
+    // --- SECURE DEVICE ID GENERATOR ---
+    function getDeviceID() {
+        let id = localStorage.getItem("att_device_id");
+        if (!id) {
+            id = "DEVICE-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+            localStorage.setItem("att_device_id", id);
+        }
+        return id;
+    }
 
     function showNotify(msg, type = 'default') {
         const t = document.getElementById('toast');
@@ -190,11 +186,17 @@
     async function doSecureLogin() {
         const pass = document.getElementById('adminPass').value;
         const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: pass}) });
-        if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("❌ Unauthorized Access", "error");
+        if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("Unauthorized", "error");
     }
 
     function checkStudentAccess() {
-        showView('studentView');
+        const today = new Date().toLocaleDateString();
+        if (localStorage.getItem("att_lock") === today) {
+            showNotify("🔒 Phone Locked: Already marked today.", "error");
+            showView('mainView');
+        } else {
+            showView('studentView');
+        }
     }
 
     async function hCreateSession() {
@@ -223,9 +225,9 @@
     async function markManually() {
         if(!activeSid) return showNotify("No active Session", "error");
         const stud = students[document.getElementById('teacherStudList').value];
-        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"markPresent", session: activeSid, name: stud.name, roll: stud.roll, class: stud.class}) });
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"markPresent", session: activeSid, name: stud.name, roll: stud.roll, class: stud.class, deviceID: "MANUAL"}) });
         const result = await res.text();
-        if(result === "SUCCESS") showNotify("✅ Marked Present!", "success"); else showNotify("⚠️ Already Marked", "error");
+        if(result === "SUCCESS") showNotify("✅ Marked!", "success"); else showNotify("Already on list", "error");
     }
 
     function toggleDateOptions() {
@@ -254,18 +256,16 @@
         const data = await res.json(); data.shift();
         document.getElementById('pdfContainer').innerHTML = data.map((r, i) => `
             <div class="letter-box" style="margin-bottom:30px;">
-                <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px;"><h2 style="margin:0; font-family: serif; color: black;">ADARSH BCA COLLEGE - BOTAD</h2></div>
+                <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px;"><h2 style="margin:0;">ADARSH BCA COLLEGE - BOTAD</h2></div>
                 To,<br><b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
-                <b>Submission Date:</b> ${r[0].split(',')[0]}<br><b>Subject: Formal Application for Grant of Leave</b><br><br>
+                <b>Submission Date:</b> ${r[0]}<br><b>Subject: Formal Application for Grant of Leave</b><br><br>
                 Respected Madam,<br><br>
-                With due respect and humble submission, I beg to state that I, <b>${r[1]}</b>, am a student of Class <b>${r[2]}</b>, Roll No <b>${r[3]}</b>. My residential address is ${r[4]}.<br><br>
+                I beg to state that I, <b>${r[1]}</b>, am a student of Class <b>${r[2]}</b>, Roll No <b>${r[3]}</b>. My address is ${r[4]}.<br><br>
                 I will be unable to attend college on date(s): <b>${r[5]}</b> because of <b>${r[6]}</b>.<br><br>
-                I assure you that I will be diligent in catching up with the missed syllabus immediately upon my return. I request you to kindly grant me leave. I shall be highly obliged.<br><br>
-                Yours obediently,<br><br><b>Student Name: ${r[1]}</b> | Roll No: ${r[3]}
-                <div style="display:flex; justify-content:space-between; margin-top:50px; font-size:12px;"><span>____________________<br>Class Teacher Sign</span><span>____________________<br>Principal Sign</span></div>
+                Yours obediently, <b>${r[1]}</b>
                 <div class="no-print" style="margin-top:30px; display:flex; gap:10px;">
-                    <button onclick="downloadOne(${i})" style="background:#000; color:#fff; width:auto; padding:10px 15px;">📥 Download PDF</button>
-                    <button onclick="confirmDeleteInList(${i})" style="background:#ff4b2b; color:#fff; width:auto; padding:10px 15px;">🗑️ Delete Application</button>
+                    <button onclick="downloadOne(${i})" style="background:#000; color:#fff;">Download PDF</button>
+                    <button onclick="confirmDeleteInList(${i})" style="background:#ff4b2b; color:#fff;">Delete Application</button>
                 </div>
             </div>
         `).join('');
@@ -273,9 +273,9 @@
     }
 
     async function confirmDeleteInList(idx) {
-        if(confirm("🗑️ Are you sure you want to delete this application? Window will close automatically.")) {
+        if(confirm("🗑️ Delete this application? Window will close automatically.")) {
             await fetch(SURL, { method: "POST", body: JSON.stringify({type:"deleteLeave", index: idx}) });
-            showNotify("🗑️ Deleted Successfully", "success"); closeLeaveModal();
+            showNotify("🗑️ Deleted!", "success"); closeLeaveModal();
         }
     }
 
@@ -326,11 +326,20 @@
 
     async function submitFinal() {
         const stud = students[document.getElementById('studSelect').value];
-        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type: "markPresent", session: document.getElementById('isid').value, name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon })});
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({
+            type: "markPresent", session: document.getElementById('isid').value, 
+            name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon,
+            deviceID: getDeviceID() 
+        })});
         const result = await res.text();
         if(result === "SUCCESS") {
+            localStorage.setItem("att_lock", new Date().toLocaleDateString());
             document.getElementById('sMark').innerHTML = "<h3>✅ Success!</h3>";
-        } else showNotify("⚠️ Already Marked", "error");
+        } else if(result === "DEVICE_BLOCKED") {
+            showNotify("❌ Security: This phone already marked attendance today.", "error");
+        } else {
+            showNotify("⚠️ Already Marked", "error");
+        }
     }
 
     async function loadDashboard() {
@@ -340,18 +349,16 @@
             <div class="session-item">
                 <small>${new Date(item.date).toLocaleString()}</small>
                 <div>🆔 ${item.sid} | 🔑 ${item.code}</div>
-                <div class="stat-line"><span style="color:var(--success)">✅ Present: ${item.present}</span><span class="absent-link" onclick="openAbsents(${item.absentNames}, ${i})">❌ Absent: ${item.absent}</span></div>
+                <div class="stat-line"><span style="color:var(--success)">✅ Present: ${item.present}</span><span class="absent-link" onclick="openAbsents(${i})">❌ Absent: ${item.absent}</span></div>
             </div>
         `).join('');
     }
 
-    function openAbsents(names, i) { 
-        document.getElementById('absentNames').innerHTML = dashboardData[i].absentNames.join("<br>"); 
-        document.getElementById('modal').style.display = 'flex'; 
-    }
+    function openAbsents(i) { document.getElementById('absentNames').innerHTML = dashboardData[i].absentNames.join("<br>"); document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function closeLeaveModal() { document.getElementById('leaveModal').style.display = 'none'; }
     async function downloadCSV() { const res = await fetch(SURL + "?action=downloadReport"); const data = await res.json(); let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n"); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "Attendance.csv"; link.click(); }
+    function confirmReset(type) { if(confirm("Reset?")) { fetch(SURL, { method: "POST", body: JSON.stringify({type: type === 'att' ? "resetAttendance" : "resetSessions"}) }).then(() => location.reload()); } }
 </script>
 </body>
 </html>
