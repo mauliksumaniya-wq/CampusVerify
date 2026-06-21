@@ -1,22 +1,22 @@
 {
-  "name": "CampusVerify Ultra",
   "short_name": "CampusVerify",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#0f2027",
-  "theme_color": "#00c6ff",
+  "name": "CampusVerify Ultra - Adarsh BCA",
   "icons": [
     {
-      "src": "icon.png",   
-      "sizes": "1024x1024",
+      "src": "icon.png",
       "type": "image/png",
-      "purpose": "any"
+      "sizes": "192x192"
     },
     {
-      "src": "icon.png",   
-      "sizes": "512x512",
+      "src": "icon.png",
       "type": "image/png",
-      "purpose": "maskable"
+      "sizes": "512x512"
     }
-  ]
+  ],
+  "start_url": ".",
+  "background_color": "#0b141a",
+  "display": "standalone",
+  "scope": ".",
+  "theme_color": "#0b141a",
+  "description": "Smart Attendance System for Adarsh BCA College"
 }
