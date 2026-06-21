@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CampusVerify Ultra - Adarsh BCA</title>
+    <title>CampusVerify Ultra - ADARSH BCA</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -21,22 +21,73 @@
             --card: rgba(26, 42, 51, 0.95); --success: #00ffcc; 
             --danger: #ff4b2b; --warning: #ff9800;
         }
-        body { font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle at top, #1a2a33, #0b141a); color: white; text-align: center; margin: 0; padding: 15px; }
-        .card { background: var(--card); padding: 25px; border-radius: 30px; max-width: 480px; margin: 20px auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(15px); }
-        h2 { font-size: 24px; letter-spacing: 1px; margin-bottom: 25px; background: linear-gradient(to right, #00c6ff, #0072ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
-        button { width: 100%; padding: 16px; margin: 10px 0; border-radius: 18px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; color: white; }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: radial-gradient(circle at top, #1a2a33, #0b141a); 
+            color: white; text-align: center; margin: 0; padding: 15px;
+        }
+
+        /* Smooth Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate { animation: fadeIn 0.5s ease-out forwards; }
+
+        .card { 
+            background: var(--card); padding: 25px; border-radius: 30px; 
+            max-width: 480px; margin: 20px auto; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(15px);
+        }
+
+        h2 { 
+            font-size: 24px; letter-spacing: 1px; margin-bottom: 25px; 
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        button { 
+            width: 100%; padding: 16px; margin: 10px 0; border-radius: 18px; 
+            border: none; font-size: 16px; font-weight: bold; cursor: pointer; 
+            transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; color: white;
+        }
+
+        button:hover { transform: scale(1.02); filter: brightness(1.1); }
+
         .btn-main { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
         .btn-student { background: linear-gradient(135deg, #00b09b, #96c93d); }
         .btn-leave { background: linear-gradient(135deg, #f093fb, #f5576c); }
         .btn-secondary { background: #33444d; }
         .btn-danger { background: linear-gradient(135deg, #ff4b2b, #ff0000); }
-        input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white; }
+
+        input, select { 
+            width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; 
+            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;
+        }
+
         .hidden { display: none !important; }
-        .dist-box { background: rgba(255,255,255,0.05); border: 2px solid var(--primary); padding: 25px; border-radius: 25px; margin: 20px 0; font-size: 18px; font-weight: bold; }
-        #modal, #leaveModal, #analyticsModal, #historyModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 9999; overflow-y: auto; }
+
+        /* Big Distance Box */
+        .dist-box { 
+            background: rgba(255,255,255,0.05); border: 2px solid var(--primary); 
+            padding: 25px; border-radius: 25px; margin: 20px 0; font-size: 18px; font-weight: bold;
+        }
+
+        /* Professional Modals */
+        #modal, #leaveModal, #analyticsModal, #historyModal { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; 
+            z-index: 9999; overflow-y: auto;
+        }
         .modal-box { background: #16262e; padding: 25px; border-radius: 30px; width: 92%; max-width: 650px; border: 1px solid var(--primary); }
-        .letter-box { background: white; color: black !important; padding: 45px; border-radius: 4px; text-align: left; font-family: 'Times New Roman', serif; line-height: 1.8; font-size: 16px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
+
+        .letter-box { 
+            background: white; color: black !important; padding: 45px; border-radius: 4px; 
+            text-align: left; font-family: 'Times New Roman', serif; line-height: 1.8; font-size: 16px; border: 1px solid #ccc;
+        }
         .letter-input { border: none; border-bottom: 1px solid #777; font-family: inherit; font-size: inherit; background: transparent; padding: 0 5px; color: black !important; font-weight: bold; }
+
         .analytics-card { background: rgba(255,255,255,0.07); padding: 15px; border-radius: 18px; margin-bottom: 15px; text-align: left; border-left: 5px solid var(--success); }
         .progress-container { background: #333; height: 10px; border-radius: 10px; margin-top: 10px; overflow: hidden; }
         .progress-bar { height: 100%; transition: 1.5s; }
@@ -49,7 +100,7 @@
 <div id="toast"></div>
 
 <!-- MAIN VIEW -->
-<div class="card" id="mainView">
+<div class="card animate" id="mainView">
     <div style="font-size: 50px;">&#x1F3EB;</div>
     <h2>ADARSH BCA COLLEGE</h2>
     
@@ -59,33 +110,26 @@
     <button class="btn-secondary" onclick="openStudentHistory()">&#x1F4CB; My History Status</button>
 
     <div style="text-align: left; background: rgba(0, 198, 255, 0.05); padding: 20px; border-radius: 25px; margin-top: 25px; border: 1px solid rgba(0, 198, 255, 0.1);">
-        <h4 style="margin:0; color: var(--primary);">&#x1F680; Quick Steps:</h4>
-        <div style="font-size: 13px; line-height: 1.8; color: #ccc; padding-left: 20px; margin-top: 10px;">
-            1. &#x1F4CD; Turn <b>ON GPS/Location</b>.<br>
-            2. &#x1F511; Get <b>Codes</b> from Teacher.<br>
-            3. &#x1F6F0; <b>Verify Location</b> in Student Portal.<br>
-            4. &#x2705; <b>Confirm</b> your name.
-        </div>
+        <h4 style="margin:0; color: var(--primary);">&#x1F680; Quick Start Guide:</h4>
+        <ol style="font-size: 13px; line-height: 1.8; color: #ccc; padding-left: 20px; margin-top: 10px;">
+            <li>&#x1F4CD; Turn <b>ON GPS/Location</b> on your phone.</li>
+            <li>&#x1F511; Get today's <b>Session ID & Code</b> from teacher.</li>
+            <li>&#x1F393; Enter codes in <b>Student Portal</b> and click Verify.</li>
+            <li>&#x2705; <b>Select your Name</b> carefully and click confirm.</li>
+            <li>&#x1F6AB; <b>Warning:</b> Do not use your phone for friends. One device = One student.</li>
+        </ol>
+
         <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 15px; display: flex; gap: 10px; align-items: center;">
             <div style="font-size: 20px;">&#x1F6E1;</div>
             <p style="font-size: 11px; color: #a0acb8; line-height: 1.5; margin: 0; font-style: italic;">
-                <b>Safe & Secure:</b> This app <u>cannot</u> save or share your live location. It only calculates the distance to verify your presence.
+                <b>Safe & Secure:</b> This app <u>cannot</u> save or share your live location with anyone. It only calculates the distance to college to verify your presence.
             </p>
         </div>
     </div>
 </div>
 
-<!-- TEACHER LOGIN -->
-<div class="card hidden" id="loginView">
-    <div style="font-size: 40px;">&#x1F512;</div>
-    <h3>Admin Access</h3>
-    <input type="password" id="adminPass" placeholder="Enter Admin Password">
-    <button class="btn-main" onclick="doSecureLogin()">&#x1F680; Secure Login</button>
-    <button class="btn-secondary" onclick="showView('mainView')">&#x2B05; Back Home</button>
-</div>
-
 <!-- TEACHER DASHBOARD -->
-<div class="card hidden" id="teacherView">
+<div class="card hidden animate" id="teacherView">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 style="margin: 0; color: var(--primary);">&#x1F468;&#x200D;&#x1F3EB; Teacher Panel</h3>
         <button class="btn-secondary" style="width: auto; padding: 8px 15px;" onclick="showView('mainView')">Logout &#x1F6AA;</button>
@@ -108,7 +152,7 @@
         <button style="background:#ff9800;" onclick="viewAnalytics()">&#x1F4CA; Analytics</button>
         <button style="background:#6a11cb;" onclick="viewLeaves()">&#x1F4E9; View Leaves</button>
         <button class="btn-main" onclick="downloadCSV()">&#x1F4E5; Report</button>
-        <button class="btn-secondary" onclick="loadDashboard()">&#x1F504; Refresh</button>
+        <button class="btn-secondary" onclick="loadDashboard()">&#x1F504; History</button>
     </div>
     <div id="historyList"></div>
     <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -117,8 +161,17 @@
     </div>
 </div>
 
+<!-- TEACHER LOGIN -->
+<div class="card hidden animate" id="loginView">
+    <div style="font-size: 40px;">&#x1F512;</div>
+    <h3>Admin Access</h3>
+    <input type="password" id="adminPass" placeholder="Enter Admin Password">
+    <button class="btn-main" onclick="doSecureLogin()">&#x1F680; Secure Login</button>
+    <button class="btn-secondary" onclick="showView('mainView')">&#x2B05; Back Home</button>
+</div>
+
 <!-- STUDENT PORTAL -->
-<div class="card hidden" id="studentView">
+<div class="card hidden animate" id="studentView">
     <div style="font-size: 40px;">&#x1F393;</div>
     <h3>Student Portal</h3>
     <div id="sVerify">
@@ -129,30 +182,33 @@
     <div id="distanceDisplay" class="dist-box hidden"></div>
     <div id="sMark" class="hidden">
         <select id="studSelect"></select>
-        <button id="pBtn" class="btn-student" onclick="submitFinal()">&#x2705; Confirm Attendance</button>
+        <button id="pBtn" class="btn-student" onclick="submitFinal()">&#x2705; Confirm My Attendance</button>
     </div>
     <div id="status" style="margin-top:15px; font-size:14px; opacity: 0.7;">&#x231B; Ready</div>
     <button class="btn-secondary" onclick="showView('mainView')">&#x1F3E0; Back Home</button>
 </div>
 
-<!-- LEAVE FORM -->
-<div class="card hidden" id="leaveFormView">
+<!-- LEAVE FORM (Restored Original Content) -->
+<div class="card hidden animate" id="leaveFormView">
     <div class="letter-box">
-        <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px;">
-            <h2 style="margin:0; color: black; -webkit-text-fill-color: black;">ADARSH BCA COLLEGE</h2>
+        <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px;">
+            <h2 style="margin:0; color: black;">ADARSH BCA COLLEGE - BOTAD</h2>
         </div>
         To,<br><b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
-        <b>Subject: Application for Grant of Leave</b><br><br>
+        <b>Subject: Formal Application for Grant of Leave of Absence</b><br><br>
         Respected Madam,<br><br>
-        I, <input id="lName" class="letter-input" style="width:180px" placeholder="Student Name" oninput="updateSig()">, 
-        Class <input id="lClass" class="letter-input" style="width:100px" placeholder="Enter Class">, 
+        With due respect and humble submission, I beg to state that I, <input id="lName" class="letter-input" style="width:200px" placeholder="Student Full Name" oninput="updateSig()">, 
+        am a student of Class <input id="lClass" class="letter-input" style="width:100px" placeholder="Enter Class">, 
         Roll No <input id="lRoll" class="letter-input" style="width:50px" placeholder="Roll No">. 
-        Address: <input id="lAddress" class="letter-input" style="width:85%" placeholder="Enter Address">.<br><br>
-        Reason: <b><select id="lReason" class="letter-input" onchange="toggleDateOptions()">
+        My residential address is <input id="lAddress" class="letter-input" style="width:85%" placeholder="Enter Full Address">.<br><br>
+        
+        I wish to inform you that I will be unable to attend the college because of 
+        <b><select id="lReason" class="letter-input" onchange="toggleDateOptions()">
             <option value="Severe Sickness">Severe Sickness / Fever</option>
             <option value="Urgent Family Work">Urgent Family Work</option>
             <option value="an Out of Station Trip">Out of Station Trip</option>
-        </select></b>.<br><br>
+        </select></b>. I request leave for:<br><br>
+        
         <div id="dateArea"><b>Date:</b> <input id="lDateSingle" type="date" class="letter-input"></div>
         <div id="rangeArea" class="hidden">
             <select id="dateMode" class="letter-input" onchange="toggleDateOptions()">
@@ -161,9 +217,12 @@
             <input id="lDateOutSingle" type="date" class="letter-input">
             <div id="rangeOutDate" class="hidden">From: <input id="lDateFrom" type="date" class="letter-input"> To: <input id="lDateTo" type="date" class="letter-input"></div>
         </div>
-        <br>Yours obediently, <b><span id="sigName">_______</span></b>
+        <br>I assure you that I will be diligent in catching up with the missed syllabus immediately upon my return. Please grant me leave for the mentioned duration. I shall be highly obliged.<br><br>
+        Yours obediently,<br><br>
+        <b>Student Name: <span id="sigName">_______</span></b><br>
+        <b>Contact No:</b> <input id="lPhone" class="letter-input" style="width:130px" placeholder="Phone Number">
     </div>
-    <button class="btn-leave" style="margin-top: 15px;" onclick="submitLeave()">&#x1F680; Submit Application</button>
+    <button class="btn-leave" style="margin-top: 20px;" onclick="submitLeave()">🚀 Submit Application</button>
     <button class="btn-secondary" onclick="showView('mainView')">Cancel</button>
 </div>
 
@@ -180,7 +239,7 @@
     function getFingerprint() { return [navigator.userAgent, screen.width + 'x' + screen.height].join('|'); }
     function showNotify(msg, type = 'default') { const t = document.getElementById('toast'); t.innerText = msg; t.style.background = type === 'error' ? 'var(--danger)' : (type === 'success' ? 'var(--success)' : '#fff'); t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3500); }
     function showView(id) { document.querySelectorAll('.card').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id === 'teacherView') { loadDashboard(); loadStudentsForTeacher(); } }
-    async function doSecureLogin() { const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: document.getElementById('adminPass').value}) }); if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("&#x274C; Unauthorized", "error"); }
+    async function doSecureLogin() { const pass = document.getElementById('adminPass').value; const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: pass}) }); if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("&#x274C; Unauthorized", "error"); }
     function openStudentHistory() { document.getElementById('historyModal').style.display = 'flex'; }
     async function fetchMyHistory() { const roll = document.getElementById('checkRoll').value; const res = await fetch(`${SURL}?action=getStudentHistory&roll=${roll}`); const data = await res.json(); document.getElementById('myHistoryList').innerHTML = data.map(h => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444;"><span>${h.date}</span><span>${h.status}</span></div>`).join('') || "No records."; }
     async function viewAnalytics() { showNotify("&#x1F4C8; Loading..."); const res = await fetch(`${SURL}?action=getAnalytics`); analyticsData = await res.json(); renderAnalytics(analyticsData); document.getElementById('analyticsModal').style.display = 'flex'; }
