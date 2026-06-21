@@ -18,12 +18,14 @@
         .btn-danger { background: linear-gradient(135deg, #ff4b2b, #ff0000); }
         .hidden { display: none !important; }
         .display-text { font-size: 20px; font-weight: 900; margin: 15px 0; color: var(--primary); }
-        .dist-box { background: rgba(255,255,255,0.05); border: 2px solid var(--primary); padding: 20px; border-radius: 20px; margin: 15px 0; font-size: 18px; }
+        .dist-box { background: rgba(255,255,255,0.05); border: 2px solid var(--primary); padding: 20px; border-radius: 20px; margin: 15px 0; font-size: 18px; line-height: 1.5; }
+        .dist-success { border-color: var(--success); color: var(--success); }
+        .dist-error { border-color: var(--danger); color: var(--danger); }
         .session-item { background: rgba(0,0,0,0.2); padding: 18px; border-radius: 16px; margin-top: 15px; text-align: left; border-left: 5px solid var(--primary); }
         .stat-line { display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px; }
         #modal, #leaveModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; }
         .modal-box { background: var(--card); padding: 20px; border-radius: 25px; width: 95%; max-width: 750px; border: 1px solid #444; }
-        .letter-box { background: white; color: black !important; padding: 45px; border-radius: 4px; text-align: left; font-family: 'Times New Roman', Times, serif; line-height: 1.8; font-size: 16px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
+        .letter-box { background: white; color: black !important; padding: 40px; border-radius: 4px; text-align: left; font-family: 'Times New Roman', Times, serif; line-height: 1.8; font-size: 16px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
         .letter-input { border: none; border-bottom: 1px solid #777; font-family: inherit; font-size: inherit; background: transparent; padding: 0 5px; color: black !important; }
         #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 15px 25px; border-radius: 50px; background: #333; color: white; font-size: 14px; font-weight: bold; z-index: 2000; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
     </style>
@@ -33,7 +35,7 @@
 <div id="toast"></div>
 
 <div class="card">
-    <h2 id="title">✨ ADARSH BCA COLLEGE</h2>
+    <h2 id="title">✨ CampusVerify Ultra</h2>
 
     <div id="mainView">
         <button onclick="showView('loginView')">👨‍🏫 Teacher Portal</button>
@@ -45,7 +47,7 @@
             <ol style="font-size: 13.5px; padding-left: 20px; line-height: 1.8; color: #d1d1d1; margin-bottom: 0;">
                 <li>📱 Ensure Internet is active.</li>
                 <li>🛰️ Turn ON phone GPS / Location.</li>
-                <li>🔑 Get Session ID & Code.</li>
+                <li>🔑 Get Session ID & Code from teacher.</li>
                 <li>🎓 Enter codes in Student Portal.</li>
                 <li>🛰️ Click Verify to sync location.</li>
                 <li>✅ Select Name & click confirm.</li>
@@ -53,7 +55,7 @@
             <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 15px; display: flex; gap: 12px; align-items: center;">
                 <div style="background: rgba(0, 255, 204, 0.1); padding: 8px; border-radius: 50%; font-size: 18px;">🛡️</div>
                 <p style="font-size: 11px; color: #a0acb8; line-height: 1.5; margin: 0; font-style: italic;">
-                    <b>Safe & Secure:</b> This app cannot save or share your live location with anyone. It only calculates the distance to college to verify your presence.
+                    <b>Safe & Secure:</b> This app cannot save or share your live location. It only calculates the distance to college to verify your presence.
                 </p>
             </div>
         </div>
@@ -93,7 +95,9 @@
             <input id="icode" placeholder="Verify Code">
             <button onclick="requestGPS()">🛰️ Verify Codes & Location</button>
         </div>
+        
         <div id="distanceDisplay" class="dist-box hidden"></div>
+
         <div id="sMark" class="hidden">
             <select id="studSelect"></select>
             <button id="pBtn" onclick="submitFinal()">✅ Confirm My Attendance</button>
@@ -108,7 +112,7 @@
             <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px;">
                 <h2 style="margin:0;">ADARSH BCA COLLEGE - BOTAD</h2>
             </div>
-            To, <b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
+            To,<br><b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
             <b>Subject: Formal Application for Grant of Leave of Absence</b><br><br>
             Respected Madam,<br><br>
             I, <input id="lName" class="letter-input" style="width:180px" placeholder="Student Name" oninput="updateSig()">, 
@@ -139,7 +143,7 @@
 <div id="leaveModal"><div class="modal-box"><h3>📩 Leave Applications</h3><div id="pdfContainer"></div><button class="btn-secondary" onclick="closeLeaveModal()">Close Window</button></div></div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbw4ESVtPmiuvobf8lA3aIbL71SIqvgvRNC6XVcyBSTXXRGbvNZYvKe9RofstPDI0Hv2Ow/exec"; 
+    const SURL = "https://script.google.com/macros/s/AKfycbwH6I1XZbVjcXqq5R-1naUZGuH4Hzsevymfu4EjGHO-EiaBT576e5lDdmeqWV6VHbM8jA/exec"; 
     let uLat, uLon, students, dashboardData, activeSid;
 
     // --- HARDWARE FINGERPRINT (STOPS INCOGNITO CHEATING) ---
@@ -169,15 +173,15 @@
     function checkStudentAccess() {
         const today = new Date().toLocaleDateString();
         if (localStorage.getItem("att_lock") === today) {
-            showNotify("🔒 Phone Locked: Attendance already marked today.", "error"); showView('mainView');
+            showNotify("🔒 Locked: Attendance marked today.", "error"); showView('mainView');
         } else showView('studentView');
     }
 
     async function markManually() {
         const stud = students[document.getElementById('teacherStudList').value];
-        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"markPresent", session: activeSid, name: stud.name, roll: stud.roll, class: stud.class, fingerprint: "MANUAL"}) });
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"markPresent", session: activeSid, name: stud.name, roll: stud.roll, class: stud.class, deviceID: "MANUAL"}) });
         const result = await res.text();
-        if(result === "SUCCESS") showNotify("✅ Marked!", "success"); else showNotify("Already Marked", "error");
+        if(result === "SUCCESS") showNotify("✅ Marked!", "success"); else showNotify("Already on list", "error");
     }
 
     async function submitFinal() {
@@ -185,37 +189,73 @@
         const res = await fetch(SURL, { method: "POST", body: JSON.stringify({
             type: "markPresent", session: document.getElementById('isid').value, 
             name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon,
-            fingerprint: getFingerprint() 
+            deviceID: getFingerprint() 
         })});
         const result = await res.text();
         if(result === "SUCCESS") {
             localStorage.setItem("att_lock", new Date().toLocaleDateString());
             document.getElementById('sMark').innerHTML = "<h3>✅ Success!</h3>";
         } else if(result === "DEVICE_BLOCKED") {
-            showNotify("❌ Security: This phone already marked attendance today.", "error");
+            showNotify("❌ Security Rejection: This phone already marked attendance.", "error");
         } else {
             showNotify("⚠️ Already Marked", "error");
         }
     }
 
-    // --- QR, GPS, LEAVE, DASHBOARD ---
-    async function hCreateSession() { activeSid = "SESS-" + Math.floor(100000 + Math.random()*900000); document.getElementById('sQR').innerHTML = ""; document.getElementById('sQR').classList.remove('hidden'); new QRCode(document.getElementById('sQR'), { text: activeSid, width: 160, height: 160 }); document.getElementById('sDisplay').innerText = activeSid; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"createSession", session: activeSid}) }); }
-    async function hCreateCode() { if(!activeSid) return showNotify("➕ Create Session First", "error"); let code = Math.floor(1000 + Math.random()*8999).toString(); document.getElementById('cQR').innerHTML = ""; document.getElementById('cQR').classList.remove('hidden'); new QRCode(document.getElementById('cQR'), { text: code, width: 160, height: 160 }); document.getElementById('cDisplay').innerText = "VERIFY: " + code; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"updateCode", session: activeSid, code: code}) }); }
-    async function loadStudentsForTeacher() { const res = await fetch(`${SURL}?action=getStudents`); students = await res.json(); document.getElementById('teacherStudList').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join(''); }
-    function toggleDateOptions() { const out = document.getElementById('lReason').value === "an Out of Station Trip"; const isRange = document.getElementById('dateMode').value === "range"; document.getElementById('rangeArea').classList.toggle('hidden', !out); document.getElementById('dateArea').classList.toggle('hidden', out); document.getElementById('lDateOutSingle').classList.toggle('hidden', isRange); document.getElementById('rangeOutDate').classList.toggle('hidden', !isRange); }
-    function updateSig() { document.getElementById('sigName').innerText = document.getElementById('lName').value || "_______"; }
+    function requestGPS() {
+        const sid = document.getElementById('isid').value.trim();
+        const vco = document.getElementById('icode').value.trim();
+        if(!sid || !vco) return showNotify("⚠️ Enter codes first", "error");
+        navigator.geolocation.getCurrentPosition(pos => {
+            uLat = pos.coords.latitude; uLon = pos.coords.longitude; verifyAndLoadData(); 
+        }, () => showNotify("❌ GPS Denied", "error"), { enableHighAccuracy: true });
+    }
+
+    async function verifyAndLoadData() {
+        const distDiv = document.getElementById('distanceDisplay');
+        const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`);
+        const locData = await locRes.json();
+        distDiv.classList.remove('hidden');
+        if (locData.status === "IN_RANGE") {
+            distDiv.className = "dist-box dist-success";
+            distDiv.innerHTML = `📍 Distance: ${locData.distance} km<br><b>✅ You are able to attend your presentation.</b>`;
+            const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
+            const sessions = await res.json();
+            const match = sessions.find(x => x.session === document.getElementById('isid').value && x.code === document.getElementById('icode').value);
+            if(match) {
+                students = await (await fetch(`${SURL}?action=getStudents`)).json();
+                document.getElementById('sVerify').classList.add('hidden');
+                document.getElementById('sMark').classList.remove('hidden');
+                document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
+            } else showNotify("Invalid Codes", "error");
+        } else {
+            distDiv.className = "dist-box dist-error";
+            distDiv.innerHTML = `📍 Distance: ${locData.distance} km<br><b>❌ You are not in college.</b>`;
+        }
+    }
+
+    async function loadDashboard() {
+        const res = await fetch(`${SURL}?action=getDashboard&t=${Date.now()}`);
+        dashboardData = await res.json();
+        document.getElementById('historyList').innerHTML = dashboardData.map((item, i) => `<div class="session-item"><small>${new Date(item.date).toLocaleString()}</small><div>🆔 ${item.sid} | 🔑 ${item.code}</div><div class="stat-line"><span style="color:var(--success)">✅ Present: ${item.present}</span><span class="absent-link" onclick="openAbsents(${i})">❌ Absent: ${item.absent}</span></div></div>`).join('');
+    }
+
+    // --- LEAVE & PDF ---
     async function submitLeave() { let d = document.getElementById('lDateSingle').value; const data = { type:"submitLeave", name:document.getElementById('lName').value, class:document.getElementById('lClass').value, roll:document.getElementById('lRoll').value, address:document.getElementById('lAddress').value, dates:d, reason:document.getElementById('lReason').value }; await fetch(SURL, { method: "POST", body: JSON.stringify(data) }); showNotify("🚀 Submitted!", "success"); showView('mainView'); }
     async function viewLeaves() { const res = await fetch(SURL + "?action=getLeaves"); const data = await res.json(); data.shift(); document.getElementById('pdfContainer').innerHTML = data.map((r, i) => `<div class="letter-box" style="margin-bottom:30px;"><h2 style="text-align:center;">ADARSH BCA COLLEGE</h2>To, Krishna Mam, Botad.<br><br><b>Subject: Leave Application</b><br><br>Respected Madam, I am <b>${r[1]}</b>, Roll <b>${r[3]}</b>. I request leave on <b>${r[5].split(',')[0]}</b> due to <b>${r[6]}</b>.<br><br>Yours obediently, <b>${r[1]}</b><div class="no-print" style="margin-top:30px; display:flex; gap:10px;"><button onclick="downloadOne(${i})" style="background:#000; color:#fff; width:auto; padding:10px 15px;">📥 Download PDF</button><button onclick="confirmDeleteInList(${i})" style="background:#ff4b2b; color:#fff; width:auto; padding:10px 15px;">🗑️ Delete Application</button></div></div>`).join(''); document.getElementById('leaveModal').style.display = 'flex'; }
-    async function confirmDeleteInList(idx) { if(confirm("🗑️ Delete this application?")) { await fetch(SURL, { method: "POST", body: JSON.stringify({type:"deleteLeave", index: idx}) }); showNotify("🗑️ Deleted!", "success"); closeLeaveModal(); } }
+    async function confirmDeleteInList(idx) { if(confirm("🗑️ Delete this?")) { await fetch(SURL, { method: "POST", body: JSON.stringify({type:"deleteLeave", index: idx}) }); showNotify("🗑️ Deleted!", "success"); closeLeaveModal(); } }
     function downloadOne(idx) { const el = document.querySelectorAll('#pdfContainer > .letter-box')[idx].cloneNode(true); el.querySelector('.no-print').remove(); html2pdf().set({ margin: 10, filename: 'Leave_App.pdf', html2canvas: { scale: 3 } }).from(el).save(); }
-    function requestGPS() { navigator.geolocation.getCurrentPosition(pos => { uLat = pos.coords.latitude; uLon = pos.coords.longitude; verifyAndLoadData(); }, () => showNotify("❌ GPS Denied", "error"), { enableHighAccuracy: true }); }
-    async function verifyAndLoadData() { const distDiv = document.getElementById('distanceDisplay'); const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`); const locData = await locRes.json(); distDiv.classList.remove('hidden'); if (locData.status === "IN_RANGE") { distDiv.className = "dist-box dist-success"; distDiv.innerHTML = `📍 Distance: ${locData.distance} km<br><b>✅ Success:</b> You are able to attend.`; const res = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`); const sessions = await res.json(); const match = sessions.find(x => x.session === document.getElementById('isid').value && x.code === document.getElementById('icode').value); if(match) { students = await (await fetch(`${SURL}?action=getStudents`)).json(); document.getElementById('sVerify').classList.add('hidden'); document.getElementById('sMark').classList.remove('hidden'); document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join(''); } else showNotify("Invalid Codes", "error"); } else { distDiv.className = "dist-box dist-error"; distDiv.innerHTML = `📍 Distance: ${locData.distance} km<br><b>❌ Error:</b> You are not in college.`; } }
-    async function loadDashboard() { const res = await fetch(`${SURL}?action=getDashboard&t=${Date.now()}`); dashboardData = await res.json(); document.getElementById('historyList').innerHTML = dashboardData.map((item, i) => `<div class="session-item"><small>${new Date(item.date).toLocaleString()}</small><div>🆔 ${item.sid} | 🔑 ${item.code}</div><div class="stat-line"><span style="color:var(--success)">✅ Present: ${item.present}</span><span class="absent-link" onclick="openAbsents(${i})">❌ Absent: ${item.absent}</span></div></div>`).join(''); }
+    
+    // --- QR & HELPERS ---
+    async function hCreateSession() { activeSid = "SESS-" + Math.floor(100000 + Math.random()*900000); document.getElementById('sQR').innerHTML = ""; document.getElementById('sQR').classList.remove('hidden'); new QRCode(document.getElementById('sQR'), { text: activeSid, width: 160, height: 160 }); document.getElementById('sDisplay').innerText = activeSid; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"createSession", session: activeSid}) }); }
+    async function hCreateCode() { if(!activeSid) return showNotify("➕ Create Session First", "error"); let code = Math.floor(1000 + Math.random()*8999).toString(); document.getElementById('cQR').innerHTML = ""; document.getElementById('cQR').classList.remove('hidden'); new QRCode(document.getElementById('cQR'), { text: code, width: 160, height: 160 }); document.getElementById('cDisplay').innerText = "VERIFY: " + code; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"updateCode", session: activeSid, code: code}) }); }
     function openAbsents(i) { document.getElementById('absentNames').innerHTML = dashboardData[i].absentNames.join("<br>"); document.getElementById('modal').style.display = 'flex'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function closeLeaveModal() { document.getElementById('leaveModal').style.display = 'none'; }
     async function downloadCSV() { const res = await fetch(SURL + "?action=downloadReport"); const data = await res.json(); let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n"); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "Attendance.csv"; link.click(); }
     function confirmReset(type) { if(confirm("Reset?")) { fetch(SURL, { method: "POST", body: JSON.stringify({type: type === 'att' ? "resetAttendance" : "resetSessions"}) }).then(() => location.reload()); } }
+    function updateSig() { document.getElementById('sigName').innerText = document.getElementById('lName').value || "_______"; }
+    function toggleDateOptions() { const out = document.getElementById('lReason').value === "an Out of Station Trip"; const isRange = document.getElementById('dateMode').value === "range"; document.getElementById('rangeArea').classList.toggle('hidden', !out); document.getElementById('dateArea').classList.toggle('hidden', out); document.getElementById('lDateOutSingle').classList.toggle('hidden', isRange); document.getElementById('rangeOutDate').classList.toggle('hidden', !isRange); }
 </script>
 </body>
 </html>
