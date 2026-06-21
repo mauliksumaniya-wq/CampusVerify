@@ -20,13 +20,12 @@
         .btn-success { background: linear-gradient(135deg, #00ffcc, #00ab89); }
         .btn-danger { background: linear-gradient(135deg, #ff4b2b, #ff0000); }
         .hidden { display: none !important; }
-        .qr-box { background: white; padding: 12px; width: 160px; height: 160px; margin: 20px auto; border-radius: 16px; }
         .display-text { font-size: 20px; font-weight: 900; margin: 15px 0; color: var(--primary); }
         .session-item { background: rgba(0,0,0,0.2); padding: 18px; border-radius: 16px; margin-top: 15px; text-align: left; border-left: 5px solid var(--primary); }
         .stat-line { display: flex; justify-content: space-between; margin-top: 12px; font-size: 14px; }
         .absent-link { color: var(--danger); font-weight: bold; text-decoration: underline; cursor: pointer; }
         
-        #modal, #leaveModal, #confirmModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; }
+        #modal, #leaveModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; overflow-y: auto; }
         .modal-box { background: var(--card); padding: 20px; border-radius: 25px; width: 95%; max-width: 750px; border: 1px solid #444; }
         .letter-box { background: white; color: black !important; padding: 45px; border-radius: 4px; text-align: left; font-family: 'Times New Roman', Times, serif; line-height: 1.8; font-size: 16px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; }
         .letter-input { border: none; border-bottom: 1px solid #777; font-family: inherit; font-size: inherit; background: transparent; padding: 0 5px; color: black !important; }
@@ -65,6 +64,7 @@
         </div>
     </div>
 
+    <!-- TEACHER PORTAL -->
     <div id="loginView" class="hidden">
         <h3>&#x1F512; Admin Access</h3>
         <input type="password" id="adminPass" placeholder="Enter Admin Password">
@@ -98,6 +98,7 @@
         <button class="btn-secondary" onclick="showView('mainView')" style="margin-top:20px">&#x1F6AA; Logout</button>
     </div>
 
+    <!-- STUDENT PORTAL -->
     <div id="studentView" class="hidden">
         <div id="sVerify">
             <input id="isid" placeholder="Session ID">
@@ -158,15 +159,11 @@
     </div>
 </div>
 
-<div id="confirmModal">
-    <div class="modal-box" style="max-width: 350px;"><h3 id="confirmTitle" style="color:var(--danger);">Confirm Action</h3><p id="confirmMsg"></p><div style="display:flex; gap:10px;"><button id="confirmYes" class="btn-danger">Confirm</button><button onclick="closeConfirm()" class="btn-secondary">Cancel</button></div></div>
-</div>
-
 <div id="modal"><div class="modal-box"><h3>&#x274C; Absent Students</h3><div id="absentNames"></div><button class="btn-secondary" onclick="closeModal()">Close</button></div></div>
-<div id="leaveModal"><div class="modal-box"><h3>&#x1F4E9; Student Applications</h3><div id="pdfContainer"></div><button class="btn-secondary" onclick="closeLeaveModal()">Close Window</button></div></div>
+<div id="leaveModal"><div class="modal-box"><h3>&#x1F4E9; Student Leave Applications</h3><div id="pdfContainer"></div><button class="btn-secondary" onclick="closeLeaveModal()">Close Window</button></div></div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbyRz_CM4nK8RYUk4-FTLH0-QnnbdLCXQEfaRpTdUaE3FLaOrddkCJX0CQtLRXLsPdMVzg/exec"; 
+    const SURL = "https://script.google.com/macros/s/AKfycbxvn3oyvanqoovPhctQxiTbJQeyI7nVH4X5-xUGeKrSqRXdX8FH6PSTsFm1EjyT2YxErg/exec"; 
     let uLat, uLon, students, dashboardData, activeSid;
 
     function showNotify(msg, type = 'default') {
@@ -175,14 +172,6 @@
         t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3000);
     }
 
-    function showConfirm(title, msg, onConfirm) {
-        document.getElementById('confirmTitle').innerText = title;
-        document.getElementById('confirmMsg').innerText = msg;
-        document.getElementById('confirmModal').style.display = 'flex';
-        document.getElementById('confirmYes').onclick = () => { onConfirm(); closeConfirm(); };
-    }
-    function closeConfirm() { document.getElementById('confirmModal').style.display = 'none'; }
-
     function showView(id) {
         document.querySelectorAll('.card > div').forEach(v => v.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
@@ -190,7 +179,8 @@
     }
 
     async function doSecureLogin() {
-        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: document.getElementById('adminPass').value}) });
+        const pass = document.getElementById('adminPass').value;
+        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: pass}) });
         if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("&#x274C; Unauthorized", "error");
     }
 
@@ -242,9 +232,10 @@
     function updateSig() { document.getElementById('sigName').innerText = document.getElementById('lName').value || "_______"; }
     
     async function submitLeave() {
+        const mode = document.getElementById('dateMode').value;
         let d = document.getElementById('lDateSingle').value;
         if(document.getElementById('lReason').value === "an Out of Station Trip") {
-            d = (document.getElementById('dateMode').value === "single") ? document.getElementById('lDateOutSingle').value : document.getElementById('lDateFrom').value + " to " + document.getElementById('lDateTo').value;
+            d = (mode === "single") ? document.getElementById('lDateOutSingle').value : document.getElementById('lDateFrom').value + " to " + document.getElementById('lDateTo').value;
         }
         const data = { type:"submitLeave", name:document.getElementById('lName').value, class:document.getElementById('lClass').value, roll:document.getElementById('lRoll').value, address:document.getElementById('lAddress').value + " [Ph: " + document.getElementById('lPhone').value + "] [Guard: " + document.getElementById('lGuard').value + "]", dates:d, reason:document.getElementById('lReason').value };
         await fetch(SURL, { method: "POST", body: JSON.stringify(data) });
@@ -255,17 +246,16 @@
         const res = await fetch(SURL + "?action=getLeaves");
         const data = await res.json(); data.shift();
         document.getElementById('pdfContainer').innerHTML = data.map((r, i) => {
-            const cleanSubDate = r[0].split('T')[0].split(',')[0];
-            const cleanLeaveDate = r[5].split('T')[0];
+            const dateOnly = r[0].split(',')[0];
             return `
             <div class="letter-box" style="margin-bottom:30px;">
                 <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px;"><h2 style="margin:0; font-family: serif; color: black;">ADARSH BCA COLLEGE - BOTAD</h2></div>
                 To,<br><b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
-                <b>Submission Date:</b> ${cleanSubDate}<br><b>Subject: Formal Application for Grant of Leave</b><br><br>
+                <b>Submission Date:</b> ${dateOnly}<br><b>Subject: Formal Application for Grant of Leave</b><br><br>
                 Respected Madam,<br><br>
-                With due respect, I beg to state that I, <b>${r[1]}</b>, am a student of Class <b>${r[2]}</b>, Roll No <b>${r[3]}</b>. My address is ${r[4]}.<br><br>
-                I will be unable to attend college on date(s): <b>${cleanLeaveDate}</b> because of <b>${r[6]}</b>.<br><br>
-                I request you to kindly grant me leave. I shall be highly obliged.<br><br>
+                With due respect and humble submission, I beg to state that I, <b>${r[1]}</b>, am a student of Class <b>${r[2]}</b>, Roll No <b>${r[3]}</b>. My residential address is ${r[4]}.<br><br>
+                I am writing to inform you that I will be unable to attend college on date(s): <b>${r[5]}</b> because of <b>${r[6]}</b>.<br><br>
+                I assure you that I will be diligent in catching up with the missed syllabus immediately upon my return. I request you to kindly grant me leave. I shall be highly obliged.<br><br>
                 Yours obediently,<br><br><b>Student Name: ${r[1]}</b> | Roll: ${r[3]}
                 <div style="display:flex; justify-content:space-between; margin-top:50px; font-size:12px;"><span>____________________<br>Teacher Sign</span><span>____________________<br>Principal Sign</span></div>
                 <div class="no-print" style="margin-top:30px; display:flex; gap:10px;">
@@ -278,9 +268,9 @@
     }
 
     async function confirmDeleteInList(idx) {
-        if(confirm("&#x1F5D1; Delete this application? window will close automatically.")) {
+        if(confirm("&#x1F5D1; Delete this application? Window will close automatically.")) {
             await fetch(SURL, { method: "POST", body: JSON.stringify({type:"deleteLeave", index: idx}) });
-            showNotify("&#x1F5D1; Deleted!", "success"); closeLeaveModal();
+            showNotify("&#x1F5D1; Deleted Successfully", "success"); closeLeaveModal();
         }
     }
 
@@ -322,12 +312,9 @@
 
     async function submitFinal() {
         const stud = students[document.getElementById('studSelect').value];
-        const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type: "markPresent", session: document.getElementById('isid').value, name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon })});
-        const result = await res.text();
-        if(result === "SUCCESS") {
-            localStorage.setItem("att_lock", new Date().toLocaleDateString());
-            document.getElementById('sMark').innerHTML = "<h3>&#x2705; Success!</h3>";
-        } else showNotify("&#x26A0; Already Marked", "error");
+        await fetch(SURL, { method: "POST", body: JSON.stringify({type: "markPresent", session: document.getElementById('isid').value, name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon })});
+        localStorage.setItem("att_lock", new Date().toLocaleDateString());
+        document.getElementById('sMark').innerHTML = "<h3>&#x2705; Success!</h3>";
     }
 
     function openAbsents(i) { document.getElementById('absentNames').innerHTML = dashboardData[i].absentNames.join("<br>"); document.getElementById('modal').style.display = 'flex'; }
