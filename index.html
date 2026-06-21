@@ -111,26 +111,26 @@
 
 <!-- MAIN VIEW -->
 <div class="card animate" id="mainView">
-    <div style="font-size: 60px; margin-bottom: 10px;">??</div>
+    <div style="font-size: 60px; margin-bottom: 10px;">🏫</div>
     <h2>ADARSH BCA COLLEGE</h2>
     
-    <button class="btn-main" onclick="showView('loginView')">????? Teacher Portal</button>
-    <button class="btn-student" onclick="checkStudentAccess()">?? Student Portal</button>
-    <button class="btn-leave" onclick="showView('leaveFormView')">?? Leave Application</button>
-    <button class="btn-secondary" onclick="openStudentHistory()">?? Check My Attendance</button>
+    <button class="btn-main" onclick="showView('loginView')">👨‍🏫 Teacher Portal</button>
+    <button class="btn-student" onclick="checkStudentAccess()">🎓 Student Portal</button>
+    <button class="btn-leave" onclick="showView('leaveFormView')">📝 Leave Application</button>
+    <button class="btn-secondary" onclick="openStudentHistory()">📋 Check My Attendance</button>
 
     <div style="text-align: left; background: rgba(0, 198, 255, 0.05); padding: 20px; border-radius: 25px; margin-top: 25px; border: 1px solid rgba(0, 198, 255, 0.1);">
-        <h4 style="margin:0; color: var(--primary); font-size: 18px;">?? Quick Start Guide:</h4>
+        <h4 style="margin:0; color: var(--primary); font-size: 18px;">🚀 Quick Start Guide:</h4>
         <ol style="font-size: 13.5px; line-height: 1.8; color: #ccc; padding-left: 20px; margin-top: 12px;">
-            <li>?? Turn <b>ON GPS/Location</b> on your phone.</li>
-            <li>?? Get today's <b>Session ID & Code</b> from teacher.</li>
-            <li>?? Enter codes in <b>Student Portal</b> and click Verify.</li>
-            <li>? <b>Select your Name</b> carefully and click confirm.</li>
-            <li>?? <b>One device = One student.</b> cheating is blocked.</li>
+            <li>📍 Turn <b>ON GPS/Location</b> on your phone.</li>
+            <li>🔑 Get today's <b>Session ID & Code</b> from teacher.</li>
+            <li>🎓 Enter codes in <b>Student Portal</b> and click Verify.</li>
+            <li>✅ <b>Select your Name</b> carefully and click confirm.</li>
+            <li>🚫 <b>One device = One student.</b> cheating is blocked.</li>
         </ol>
 
         <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 15px; display: flex; gap: 12px; align-items: center;">
-            <div style="background: rgba(0, 255, 204, 0.1); padding: 10px; border-radius: 50%; font-size: 20px;">???</div>
+            <div style="background: rgba(0, 255, 204, 0.1); padding: 10px; border-radius: 50%; font-size: 20px;">🛡️</div>
             <p style="font-size: 11px; color: #a0acb8; line-height: 1.5; margin: 0; font-style: italic;">
                 <b>Safe & Secure:</b> This app cannot save or share your live location. It only calculates the distance to college to verify your presence.
             </p>
@@ -140,68 +140,68 @@
 
 <!-- TEACHER LOGIN -->
 <div class="card hidden animate" id="loginView">
-    <div style="font-size: 50px;">??</div>
+    <div style="font-size: 50px;">🔐</div>
     <h3 style="margin-top: 10px;">Admin Access</h3>
     <input type="password" id="adminPass" placeholder="Enter Admin Password">
-    <button class="btn-main" onclick="doSecureLogin()">?? Secure Login</button>
-    <button class="btn-secondary" onclick="showView('mainView')">?? Back Home</button>
+    <button class="btn-main" onclick="doSecureLogin()">🚀 Secure Login</button>
+    <button class="btn-secondary" onclick="showView('mainView')">⬅️ Back Home</button>
 </div>
 
 <!-- TEACHER DASHBOARD -->
 <div class="card hidden animate" id="teacherView">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-        <h3 style="margin: 0; color: var(--primary);">????? Teacher Panel</h3>
-        <button class="btn-secondary" style="width: auto; padding: 10px 20px;" onclick="showView('mainView')">Logout ??</button>
+        <h3 style="margin: 0; color: var(--primary);">👨‍🏫 Teacher Panel</h3>
+        <button class="btn-secondary" style="width: auto; padding: 10px 20px;" onclick="showView('mainView')">Logout 🚪</button>
     </div>
     
     <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 25px; margin-bottom: 20px;">
-        <button class="btn-main" onclick="hCreateSession()">? Create Session ID</button>
+        <button class="btn-main" onclick="hCreateSession()">➕ Create Session ID</button>
         <div id="sQR" class="qr-box hidden" style="margin: 15px auto;"></div>
         <div id="sDisplay" class="display-text"></div>
-        <button class="btn-student" onclick="hCreateCode()">?? Generate Verify Code</button>
+        <button class="btn-student" onclick="hCreateCode()">🔑 Generate Verify Code</button>
         <div id="cQR" class="qr-box hidden" style="margin: 15px auto;"></div>
         <div id="cDisplay" class="display-text" style="color:var(--success)"></div>
     </div>
 
     <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 25px; margin-bottom: 20px;">
-        <h4 style="margin:0 0 10px 0;">?? Manual Entry</h4>
+        <h4 style="margin:0 0 10px 0;">📋 Manual Entry</h4>
         <select id="teacherStudList"></select>
-        <button class="btn-student" onclick="markManually()">? Mark Present</button>
+        <button class="btn-student" onclick="markManually()">✅ Mark Present</button>
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <button style="background:#ff9800;" onclick="viewAnalytics()">?? Analytics</button>
-        <button style="background:#6a11cb;" onclick="viewLeaves()">?? View Leaves</button>
-        <button class="btn-main" onclick="downloadCSV()">?? Download Report</button>
-        <button class="btn-secondary" onclick="loadDashboard()">?? History</button>
+        <button style="background:#ff9800;" onclick="viewAnalytics()">📊 Analytics</button>
+        <button style="background:#6a11cb;" onclick="viewLeaves()">📩 View Leaves</button>
+        <button class="btn-main" onclick="downloadCSV()">📥 Download Report</button>
+        <button class="btn-secondary" onclick="loadDashboard()">🔄 History</button>
     </div>
 
     <div id="historyList"></div>
     
     <div style="margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <button class="btn-danger" style="font-size: 13px;" onclick="confirmReset('att')">??? Reset Att.</button>
-        <button class="btn-danger" style="font-size: 13px; opacity: 0.6;" onclick="confirmReset('sess')">??? Reset Hist.</button>
+        <button class="btn-danger" style="font-size: 13px;" onclick="confirmReset('att')">🗑️ Reset Att.</button>
+        <button class="btn-danger" style="font-size: 13px; opacity: 0.6;" onclick="confirmReset('sess')">🗑️ Reset Hist.</button>
     </div>
 </div>
 
 <!-- STUDENT PORTAL -->
 <div class="card hidden animate" id="studentView">
-    <div style="font-size: 50px;">??</div>
+    <div style="font-size: 50px;">🎓</div>
     <h3>Student Portal</h3>
     <div id="sVerify">
         <input id="isid" placeholder="Session ID">
         <input id="icode" placeholder="Verify Code">
-        <button class="btn-main" onclick="requestGPS()">??? Verify Location & Codes</button>
+        <button class="btn-main" onclick="requestGPS()">🛰️ Verify Location & Codes</button>
     </div>
 
     <div id="distanceDisplay" class="dist-box hidden"></div>
 
     <div id="sMark" class="hidden">
         <select id="studSelect"></select>
-        <button id="pBtn" class="btn-student" onclick="submitFinal()">? Confirm My Attendance</button>
+        <button id="pBtn" class="btn-student" onclick="submitFinal()">✅ Confirm My Attendance</button>
     </div>
-    <div id="status" style="margin-top:20px; font-size:15px; opacity: 0.8;">? Ready</div>
-    <button class="btn-secondary" onclick="showView('mainView')">?? Back Home</button>
+    <div id="status" style="margin-top:20px; font-size:15px; opacity: 0.8;">⌛ Ready</div>
+    <button class="btn-secondary" onclick="showView('mainView')">🏠 Back Home</button>
 </div>
 
 <!-- LEAVE FORM -->
@@ -239,15 +239,15 @@
         <b>Student Name: <span id="sigName">_______</span></b><br>
         <b>Contact No:</b> <input id="lPhone" class="letter-input" style="width:130px" placeholder="Phone Number">
     </div>
-    <button class="btn-leave" style="margin-top: 20px;" onclick="submitLeave()">?? Submit Application</button>
+    <button class="btn-leave" style="margin-top: 20px;" onclick="submitLeave()">🚀 Submit Application</button>
     <button class="btn-secondary" onclick="showView('mainView')">Cancel</button>
 </div>
 
 <!-- MODALS -->
-<div id="analyticsModal"><div class="modal-box"><h3>?? Semester Analytics</h3><input type="text" id="anaSearch" placeholder="?? Search Roll..." oninput="filterAna()"><div id="anaList" style="margin-top:20px; max-height:55vh; overflow-y:auto;"></div><button class="btn-secondary" onclick="closeModal('analyticsModal')">Close</button></div></div>
-<div id="historyModal"><div class="modal-box"><h3>?? My Record</h3><input type="number" id="checkRoll" placeholder="Roll No"><button class="btn-student" onclick="fetchMyHistory()">?? Find</button><div id="myHistoryList" style="margin-top:15px;"></div><button class="btn-secondary" onclick="closeModal('historyModal')">Close</button></div></div>
-<div id="modal"><div class="modal-box"><h3>? Absents</h3><div id="absentNames" style="text-align:left; line-height: 2;"></div><button class="btn-secondary" onclick="closeModal('modal')">Close</button></div></div>
-<div id="leaveModal"><div class="modal-box"><h3>?? Student Applications</h3><div id="pdfContainer"></div><button class="btn-secondary" onclick="closeModal('leaveModal')">Close Window</button></div></div>
+<div id="analyticsModal"><div class="modal-box"><h3>📊 Semester Analytics</h3><input type="text" id="anaSearch" placeholder="🔍 Search Roll..." oninput="filterAna()"><div id="anaList" style="margin-top:20px; max-height:55vh; overflow-y:auto;"></div><button class="btn-secondary" onclick="closeModal('analyticsModal')">Close</button></div></div>
+<div id="historyModal"><div class="modal-box"><h3>📋 My Record</h3><input type="number" id="checkRoll" placeholder="Roll No"><button class="btn-student" onclick="fetchMyHistory()">🔍 Find</button><div id="myHistoryList" style="margin-top:15px;"></div><button class="btn-secondary" onclick="closeModal('historyModal')">Close</button></div></div>
+<div id="modal"><div class="modal-box"><h3>❌ Absents</h3><div id="absentNames" style="text-align:left; line-height: 2;"></div><button class="btn-secondary" onclick="closeModal('modal')">Close</button></div></div>
+<div id="leaveModal"><div class="modal-box"><h3>📩 Student Applications</h3><div id="pdfContainer"></div><button class="btn-secondary" onclick="closeModal('leaveModal')">Close Window</button></div></div>
 
 <script>
     const SURL = "https://script.google.com/macros/s/AKfycbycomfmtgP6QDiXJeQx9KP0iik89F7w0ZHeSdl1l0HJUwUqtelaZGj6m7q3PlK3rBEHiQ/exec"; 
@@ -265,7 +265,7 @@
     async function doSecureLogin() {
         const pass = document.getElementById('adminPass').value;
         const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: pass}) });
-        if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("? Unauthorized Access", "error");
+        if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("❌ Unauthorized Access", "error");
     }
 
     // --- STUDENT HISTORY ---
@@ -275,12 +275,12 @@
         if(!roll) return showNotify("Enter Roll No", "error");
         const res = await fetch(`${SURL}?action=getStudentHistory&roll=${roll}`);
         const data = await res.json();
-        document.getElementById('myHistoryList').innerHTML = data.map(h => `<div style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.03); margin-bottom:8px; border-radius:15px;"><span>?? ${h.date}</span><span style="font-weight:bold; color:${h.status.includes('Present') ? 'var(--success)' : 'var(--danger)'}">${h.status}</span></div>`).join('') || "No records.";
+        document.getElementById('myHistoryList').innerHTML = data.map(h => `<div style="display:flex; justify-content:space-between; padding:12px; background:rgba(255,255,255,0.03); margin-bottom:8px; border-radius:15px;"><span>📅 ${h.date}</span><span style="font-weight:bold; color:${h.status.includes('Present') ? 'var(--success)' : 'var(--danger)'}">${h.status}</span></div>`).join('') || "No records.";
     }
 
     // --- ANALYTICS ---
     async function viewAnalytics() {
-        showNotify("?? Loading Semester Data...");
+        showNotify("📈 Loading Semester Data...");
         const res = await fetch(`${SURL}?action=getAnalytics`);
         analyticsData = await res.json(); renderAnalytics(analyticsData);
         document.getElementById('analyticsModal').style.display = 'flex';
@@ -300,18 +300,18 @@
     // --- GPS & ATTENDANCE ---
     function checkStudentAccess() {
         if (localStorage.getItem("att_lock") === new Date().toLocaleDateString()) {
-            showNotify("?? Phone Locked: Attendance already marked today.", "error"); showView('mainView');
+            showNotify("🔒 Phone Locked: Attendance already marked today.", "error"); showView('mainView');
         } else showView('studentView');
     }
 
     function requestGPS() {
         const sid = document.getElementById('isid').value.trim();
         const vco = document.getElementById('icode').value.trim();
-        if(!sid || !vco) return showNotify("?? Enter codes first", "error");
-        document.getElementById('status').innerText = "??? Syncing GPS...";
+        if(!sid || !vco) return showNotify("⚠️ Enter codes first", "error");
+        document.getElementById('status').innerText = "🛰️ Syncing GPS...";
         navigator.geolocation.getCurrentPosition(pos => {
             uLat = pos.coords.latitude; uLon = pos.coords.longitude; verifyAndLoadData(); 
-        }, () => showNotify("? GPS Denied", "error"), { enableHighAccuracy: true });
+        }, () => showNotify("❌ GPS Denied", "error"), { enableHighAccuracy: true });
     }
 
     async function verifyAndLoadData() {
@@ -321,7 +321,7 @@
         distDiv.classList.remove('hidden');
         if (locData.status === "IN_RANGE") {
             distDiv.className = "dist-box dist-success";
-            distDiv.innerHTML = `?? Distance: ${locData.distance} km<br>? Success: You can attend presentation.`;
+            distDiv.innerHTML = `📍 Distance: ${locData.distance} km<br>✅ Success: You can attend presentation.`;
             const sessions = await (await fetch(`${SURL}?action=getSessions&t=${Date.now()}`)).json();
             if(sessions.find(x => x.session === document.getElementById('isid').value && x.code === document.getElementById('icode').value)) {
                 students = await (await fetch(`${SURL}?action=getStudents`)).json();
@@ -331,7 +331,7 @@
             } else showNotify("Invalid Codes", "error");
         } else {
             distDiv.className = "dist-box dist-error";
-            distDiv.innerHTML = `?? Distance: ${locData.distance} km<br>? Error: You are not in college.`;
+            distDiv.innerHTML = `📍 Distance: ${locData.distance} km<br>❌ Error: You are not in college.`;
         }
     }
 
@@ -340,24 +340,24 @@
         const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type: "markPresent", session: document.getElementById('isid').value, name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon, fingerprint: getFingerprint() })});
         if(await res.text() === "SUCCESS") {
             localStorage.setItem("att_lock", new Date().toLocaleDateString());
-            document.getElementById('sMark').innerHTML = "<h3>? Success! Attendance Marked.</h3>";
+            document.getElementById('sMark').innerHTML = "<h3>✅ Success! Attendance Marked.</h3>";
         } else showNotify("Database Blocked", "error");
     }
 
     // --- TEACHER ACTIONS ---
     async function hCreateSession() { activeSid = "SESS-" + Math.floor(100000 + Math.random()*900000); document.getElementById('sQR').innerHTML = ""; document.getElementById('sQR').classList.remove('hidden'); new QRCode(document.getElementById('sQR'), { text: activeSid, width: 160, height: 160 }); document.getElementById('sDisplay').innerText = activeSid; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"createSession", session: activeSid}) }); }
-    async function hCreateCode() { if(!activeSid) return showNotify("? Create Session First", "error"); let code = Math.floor(1000 + Math.random()*8999).toString(); document.getElementById('cQR').innerHTML = ""; document.getElementById('cQR').classList.remove('hidden'); new QRCode(document.getElementById('cQR'), { text: code, width: 160, height: 160 }); document.getElementById('cDisplay').innerText = "VERIFY: " + code; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"updateCode", session: activeSid, code: code}) }); }
+    async function hCreateCode() { if(!activeSid) return showNotify("➕ Create Session First", "error"); let code = Math.floor(1000 + Math.random()*8999).toString(); document.getElementById('cQR').innerHTML = ""; document.getElementById('cQR').classList.remove('hidden'); new QRCode(document.getElementById('cQR'), { text: code, width: 160, height: 160 }); document.getElementById('cDisplay').innerText = "VERIFY: " + code; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"updateCode", session: activeSid, code: code}) }); }
     async function loadStudentsForTeacher() { const res = await fetch(`${SURL}?action=getStudents`); students = await res.json(); document.getElementById('teacherStudList').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join(''); }
-    async function markManually() { if(!activeSid) return showNotify("Create Session First", "error"); const stud = students[document.getElementById('teacherStudList').value]; const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"markPresent", session: activeSid, name: stud.name, roll: stud.roll, class: stud.class, fingerprint: "MANUAL"}) }); if(await res.text() === "SUCCESS") showNotify("? Marked!", "success"); }
-    async function loadDashboard() { const res = await fetch(`${SURL}?action=getDashboard&t=${Date.now()}`); dashboardData = await res.json(); document.getElementById('historyList').innerHTML = dashboardData.map((item, i) => `<div class="session-item"><small>${new Date(item.date).toLocaleString()}</small><div>?? ${item.sid} | ?? ${item.code}</div><div class="stat-line"><span style="color:var(--success)">? Present: ${item.present}</span><span class="absent-link" onclick="openAbsents(${i})">? Absent: ${item.absent}</span></div></div>`).join(''); }
-    async function viewLeaves() { const res = await fetch(SURL + "?action=getLeaves"); const data = await res.json(); data.shift(); document.getElementById('pdfContainer').innerHTML = data.map((r, i) => `<div class="letter-box" style="margin-bottom:30px;"><div style="text-align:center;border-bottom:2px solid #000;margin-bottom:15px;"><h3>ADARSH BCA COLLEGE</h3></div>To, Krishna Mam. I <b>${r[1]}</b>, Roll <b>${r[3]}</b> request leave on <b>${r[5].split(',')[0]}</b> due to <b>${r[6]}</b>.<div style="margin-top:20px;display:flex;gap:10px;"><button onclick="downloadOne(${i})" style="background:#000;color:#fff;">?? PDF</button><button onclick="confirmDeleteInList(${i})" style="background:#ff4b2b;color:#fff;">??? Delete</button></div></div>`).join(''); document.getElementById('leaveModal').style.display = 'flex'; }
-    async function confirmDeleteInList(idx) { if(confirm("??? Delete application? window will close automatically.")) { await fetch(SURL, { method: "POST", body: JSON.stringify({type:"deleteLeave", index: idx}) }); showNotify("Deleted!", "success"); closeModal('leaveModal'); } }
+    async function markManually() { if(!activeSid) return showNotify("Create Session First", "error"); const stud = students[document.getElementById('teacherStudList').value]; const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"markPresent", session: activeSid, name: stud.name, roll: stud.roll, class: stud.class, fingerprint: "MANUAL"}) }); if(await res.text() === "SUCCESS") showNotify("✅ Marked!", "success"); }
+    async function loadDashboard() { const res = await fetch(`${SURL}?action=getDashboard&t=${Date.now()}`); dashboardData = await res.json(); document.getElementById('historyList').innerHTML = dashboardData.map((item, i) => `<div class="session-item"><small>${new Date(item.date).toLocaleString()}</small><div>🆔 ${item.sid} | 🔑 ${item.code}</div><div class="stat-line"><span style="color:var(--success)">✅ Present: ${item.present}</span><span class="absent-link" onclick="openAbsents(${i})">❌ Absent: ${item.absent}</span></div></div>`).join(''); }
+    async function viewLeaves() { const res = await fetch(SURL + "?action=getLeaves"); const data = await res.json(); data.shift(); document.getElementById('pdfContainer').innerHTML = data.map((r, i) => `<div class="letter-box" style="margin-bottom:30px;"><div style="text-align:center;border-bottom:2px solid #000;margin-bottom:15px;"><h3>ADARSH BCA COLLEGE</h3></div>To, Krishna Mam. I <b>${r[1]}</b>, Roll <b>${r[3]}</b> request leave on <b>${r[5].split(',')[0]}</b> due to <b>${r[6]}</b>.<div style="margin-top:20px;display:flex;gap:10px;"><button onclick="downloadOne(${i})" style="background:#000;color:#fff;">📥 PDF</button><button onclick="confirmDeleteInList(${i})" style="background:#ff4b2b;color:#fff;">🗑️ Delete</button></div></div>`).join(''); document.getElementById('leaveModal').style.display = 'flex'; }
+    async function confirmDeleteInList(idx) { if(confirm("🗑️ Delete application? window will close automatically.")) { await fetch(SURL, { method: "POST", body: JSON.stringify({type:"deleteLeave", index: idx}) }); showNotify("Deleted!", "success"); closeModal('leaveModal'); } }
     function downloadOne(idx) { const el = document.querySelectorAll('#pdfContainer > .letter-box')[idx].cloneNode(true); el.querySelector('button').parentElement.remove(); html2pdf().set({ margin: 10, filename: 'Leave_App.pdf', html2canvas: { scale: 3 } }).from(el).save(); }
     function confirmReset(type) { if(confirm("Clear record permanently?")) { fetch(SURL, { method: "POST", body: JSON.stringify({type: type === 'att' ? "resetAttendance" : "resetSessions"}) }).then(() => location.reload()); } }
     function openAbsents(i) { document.getElementById('absentNames').innerHTML = dashboardData[i].absentNames.join("<br>"); document.getElementById('modal').style.display = 'flex'; }
     function updateSig() { document.getElementById('sigName').innerText = document.getElementById('lName').value || "_______"; }
     function toggleDateOptions() { const out = document.getElementById('lReason').value === "an Out of Station Trip"; const isRange = document.getElementById('dateMode').value === "range"; document.getElementById('rangeArea').classList.toggle('hidden', !out); document.getElementById('dateArea').classList.toggle('hidden', out); document.getElementById('lDateOutSingle').classList.toggle('hidden', isRange); document.getElementById('rangeOutDate').classList.toggle('hidden', !isRange); }
-    async function submitLeave() { let d = document.getElementById('lDateSingle').value; if(document.getElementById('lReason').value === "an Out of Station Trip") { d = (document.getElementById('dateMode').value === "single") ? document.getElementById('lDateOutSingle').value : document.getElementById('lDateFrom').value + " to " + document.getElementById('lDateTo').value; } const data = { type:"submitLeave", name:document.getElementById('lName').value, class:document.getElementById('lClass').value, roll:document.getElementById('lRoll').value, address:document.getElementById('lAddress').value, dates:d, reason:document.getElementById('lReason').value }; await fetch(SURL, { method: "POST", body: JSON.stringify(data) }); showNotify("?? Submitted!", "success"); showView('mainView'); }
+    async function submitLeave() { let d = document.getElementById('lDateSingle').value; if(document.getElementById('lReason').value === "an Out of Station Trip") { d = (document.getElementById('dateMode').value === "single") ? document.getElementById('lDateOutSingle').value : document.getElementById('lDateFrom').value + " to " + document.getElementById('lDateTo').value; } const data = { type:"submitLeave", name:document.getElementById('lName').value, class:document.getElementById('lClass').value, roll:document.getElementById('lRoll').value, address:document.getElementById('lAddress').value, dates:d, reason:document.getElementById('lReason').value }; await fetch(SURL, { method: "POST", body: JSON.stringify(data) }); showNotify("🚀 Submitted!", "success"); showView('mainView'); }
     async function downloadCSV() { const res = await fetch(SURL + "?action=downloadReport"); const data = await res.json(); let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n"); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "Attendance.csv"; link.click(); }
 </script>
 </body>
