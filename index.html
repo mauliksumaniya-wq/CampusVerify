@@ -362,7 +362,18 @@
     b.style.display = 'block'; 
     setTimeout(()=>b.style.display='none', 3000); 
 }
-    function showView(id) { document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id==='teacherView') { loadStudents(); loadDashboard(); } }
+    function showView(id) { 
+    document.querySelectorAll('.card').forEach(c => c.classList.add('hidden')); 
+    document.getElementById(id).classList.remove('hidden'); 
+    
+    // Auto-load data for teacher
+    if (id === 'teacherView') { loadStudents(); loadDashboard(); } 
+    
+    // Check lock for student portal
+    if (id === 'studentView' && isPortalLocked()) {
+        document.getElementById('sInputs').innerHTML = "<h3 style='color:var(--success);'>&#x1F512; Attendance Completed</h3><p style='font-size:13px; opacity:0.7;'>You have already marked your attendance for today. Access is restricted until the next session.</p>";
+    }
+}
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -432,26 +443,65 @@ async function resetData(target) {
         document.getElementById('sDateWrap').style.display = (mode === 'single' ? 'block' : 'none');
         document.getElementById('rDateWrap').classList.toggle('hidden', mode === 'single');
     }
+	
+	// --- 1. LOCK CHECK LOGIC ---
+function isPortalLocked() {
+    const lockDate = localStorage.getItem("att_marked_lock");
+    const today = new Date().toLocaleDateString();
+    return lockDate === today;
+}
 
-    async function requestGPS() {
-        const box = document.getElementById('distBox'); box.classList.remove('hidden'); box.innerHTML = "&#x1F4CD; Finding location... Please wait.";
-        navigator.geolocation.getCurrentPosition(async p => {
-            const res = await fetch(`${SURL}?action=checkLocation&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
-            const loc = await res.json();
-            if(loc.status==="IN_RANGE") {
-                box.innerHTML = `&#x2705; Range: ${loc.distance}km (In Range)`;
-                const sres = await fetch(`${SURL}?action=getSessions`);
-                const sess = await sres.json();
-                if(sess.find(x => x[1].toString()===document.getElementById('isid').value && x[2].toString()===document.getElementById('icode').value)) {
-                    await loadStudents(); document.getElementById('sInputs').classList.add('hidden'); document.getElementById('sMark').classList.remove('hidden');
-                } else showNotify("Invalid Codes", "error");
-            } else { box.innerHTML = `? Range: ${loc.distance}km (Out of Range)`; showNotify("Range Denied", "error"); }
-        });
+// --- 2. UPDATED REQUEST GPS (Triggers Name List) ---
+async function requestGPS() {
+    // Check if already marked today before doing anything
+    if (isPortalLocked()) {
+        showNotify("⚠️ You have already marked attendance today!", "error");
+        document.getElementById('sInputs').innerHTML = "<h3 style='color:var(--success);'>✅ Daily Attendance Locked</h3><p>You have already submitted your presence for today.</p>";
+        return;
     }
 
-    async function submitFinal() {
+    const box = document.getElementById('distBox'); 
+    box.classList.remove('hidden'); 
+    box.innerHTML = "&#x1F4CD; Tracing location and calculating distance... Please wait.";
+
+    navigator.geolocation.getCurrentPosition(async p => {
+        const res = await fetch(`${SURL}?action=checkLocation&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+        const loc = await res.json();
+        
+        if (loc.status === "IN_RANGE") {
+            box.innerHTML = `&#x2705; Range: ${loc.distance}km (Success)`;
+            
+            // Verify Codes
+            const sID = document.getElementById('isid').value;
+            const sCode = document.getElementById('icode').value;
+            const sres = await fetch(`${SURL}?action=getSessions`);
+            const sessions = await sres.json();
+
+            // Check if codes match
+            if (sessions.find(x => x.session === sID && x.code === sCode)) {
+                // SUCCESS: NOW SHOW NAMES
+                await loadStudents(); // Ensure names are loaded into the dropdown
+                document.getElementById('sInputs').classList.add('hidden');
+                document.getElementById('sMark').classList.remove('hidden'); // Show the dropdown and confirm button
+                showNotify("✅ Identity Verification Required", "success");
+            } else {
+                showNotify("❌ Invalid Session ID or Verify Code", "error");
+            }
+        } else {
+            box.innerHTML = `&#x274C; Range: ${loc.distance}km (Out of Range)`;
+            showNotify("⚠️ You are not within college boundaries", "error");
+        }
+    }, () => {
+        showNotify("❌ GPS Access Denied", "error");
+    });
+}
+
+// --- 3. UPDATED SUBMIT FINAL (Saves the Lock) ---
+async function submitFinal() {
     const selectedIdx = document.getElementById('studSelect').value;
-    const s = studentListCached[selectedIdx]; // Using cached list for speed
+    const s = studentListCached[selectedIdx];
+    
+    showNotify("⌛ Submitting...");
     
     const res = await fetch(SURL, {
         method: "POST", 
@@ -467,9 +517,87 @@ async function resetData(target) {
     
     const result = await res.text();
     if (result === "SUCCESS") {
-        document.getElementById('sMark').innerHTML = "<h3>✅ Attendance Success!</h3>";
+        // SAVE THE LOCK ON THE PHONE
+        localStorage.setItem("att_marked_lock", new Date().toLocaleDateString());
+        
+        document.getElementById('sMark').innerHTML = "<h3>&#x2705; Attendance Success!</h3><p>Your portal is now locked until tomorrow.</p>";
+        showNotify("✅ Success!", "success");
     } else {
-        showNotify(result === "ALREADY_MARKED" ? "⚠️ Already marked!" : "❌ Error marking", "error");
+        showNotify(result === "ALREADY_MARKED" ? "⚠️ Already marked!" : "❌ Error", "error");
+    }
+}
+
+    async function requestGPS() {
+    // Check if already marked today before doing anything
+    if (isPortalLocked()) {
+        showNotify("⚠️ You have already marked attendance today!", "error");
+        document.getElementById('sInputs').innerHTML = "<h3 style='color:var(--success);'>✅ Daily Attendance Locked</h3><p>You have already submitted your presence for today.</p>";
+        return;
+    }
+
+    const box = document.getElementById('distBox'); 
+    box.classList.remove('hidden'); 
+    box.innerHTML = "&#x1F4CD; Tracing location and calculating distance... Please wait.";
+
+    navigator.geolocation.getCurrentPosition(async p => {
+        const res = await fetch(`${SURL}?action=checkLocation&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+        const loc = await res.json();
+        
+        if (loc.status === "IN_RANGE") {
+            box.innerHTML = `&#x2705; Range: ${loc.distance}km (Success)`;
+            
+            // Verify Codes
+            const sID = document.getElementById('isid').value;
+            const sCode = document.getElementById('icode').value;
+            const sres = await fetch(`${SURL}?action=getSessions`);
+            const sessions = await sres.json();
+
+            // Check if codes match
+            if (sessions.find(x => x.session === sID && x.code === sCode)) {
+                // SUCCESS: NOW SHOW NAMES
+                await loadStudents(); // Ensure names are loaded into the dropdown
+                document.getElementById('sInputs').classList.add('hidden');
+                document.getElementById('sMark').classList.remove('hidden'); // Show the dropdown and confirm button
+                showNotify("✅ Identity Verification Required", "success");
+            } else {
+                showNotify("❌ Invalid Session ID or Verify Code", "error");
+            }
+        } else {
+            box.innerHTML = `&#x274C; Range: ${loc.distance}km (Out of Range)`;
+            showNotify("⚠️ You are not within college boundaries", "error");
+        }
+    }, () => {
+        showNotify("❌ GPS Access Denied", "error");
+    });
+}
+
+    async function submitFinal() {
+    const selectedIdx = document.getElementById('studSelect').value;
+    const s = studentListCached[selectedIdx];
+    
+    showNotify("⌛ Submitting...");
+    
+    const res = await fetch(SURL, {
+        method: "POST", 
+        body: JSON.stringify({
+            type: "markPresent", 
+            session: document.getElementById('isid').value, 
+            name: s[0], 
+            roll: s[2], 
+            class: s[1], 
+            fingerprint: navigator.userAgent
+        })
+    });
+    
+    const result = await res.text();
+    if (result === "SUCCESS") {
+        // SAVE THE LOCK ON THE PHONE
+        localStorage.setItem("att_marked_lock", new Date().toLocaleDateString());
+        
+        document.getElementById('sMark').innerHTML = "<h3>&#x2705; Attendance Success!</h3><p>Your portal is now locked until tomorrow.</p>";
+        showNotify("✅ Success!", "success");
+    } else {
+        showNotify(result === "ALREADY_MARKED" ? "⚠️ Already marked!" : "❌ Error", "error");
     }
 }
 
