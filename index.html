@@ -3,280 +3,879 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CampusVerify Ultra - ADARSH BCA</title>
-    
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0b141a">
-    <link rel="apple-touch-icon" href="icon.png">
-    <meta name="mobile-web-app-capable" content="yes">
-
-    <!-- Libraries -->
+    <title>CampusVerify - ADARSH BCA</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
-    
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { 
-            --primary: #00c6ff; --secondary: #0072ff; --bg: #0b141a; 
-            --card: rgba(26, 42, 51, 0.95); --success: #00ffcc; 
-            --danger: #ff4b2b; --warning: #ff9800;
-        }
+        :root { --primary: #00c6ff; --secondary: #0072ff; --bg: #0b141a; --card: rgba(26, 42, 51, 0.95); --success: #00ffcc; --danger: #ff4b2b; --purple: #9d50bb; }
+        body { font-family: 'Segoe UI', sans-serif; background: radial-gradient(circle at top, #1a2a33, #0b141a); color: white; text-align: center; margin: 0; padding: 15px; overflow-x: hidden; }
 
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: radial-gradient(circle at top, #1a2a33, #0b141a); 
-            color: white; text-align: center; margin: 0; padding: 15px;
-        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .animate { animation: slideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-        /* Smooth Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate { animation: fadeIn 0.5s ease-out forwards; }
+        .card { background: var(--card); padding: 25px; border-radius: 30px; max-width: 480px; margin: 20px auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(15px); }
+        h2 { font-size: 24px; background: linear-gradient(to right, #00c6ff, #0072ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
+        
+        button { width: 100%; padding: 16px; margin: 10px 0; border-radius: 18px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; color: white; }
+        button:hover { transform: translateY(-4px); }
 
-        .card { 
-            background: var(--card); padding: 25px; border-radius: 30px; 
-            max-width: 480px; margin: 20px auto; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(15px);
-        }
+        .btn-blue { background: linear-gradient(135deg, var(--primary), var(--secondary)); box-shadow: 0 8px 25px rgba(0, 198, 255, 0.5); }
+        .btn-green { background: linear-gradient(135deg, #00b09b, #96c93d); box-shadow: 0 8px 25px rgba(0, 176, 155, 0.5); }
+        .btn-orange { background: linear-gradient(135deg, #f093fb, #f5576c); box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5); }
+        .btn-purple { background: linear-gradient(135deg, #9d50bb, #6e48aa); box-shadow: 0 8px 25px rgba(157, 80, 187, 0.5); }
+        .btn-red { background: linear-gradient(135deg, #ff4b2b, #ff0000); box-shadow: 0 8px 25px rgba(255, 75, 43, 0.5); }
+        .btn-sec { background: #33444d; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
 
-        h2 { 
-            font-size: 24px; letter-spacing: 1px; margin-bottom: 25px; 
-            background: linear-gradient(to right, #00c6ff, #0072ff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-weight: 900;
-        }
+        /* Stylized Boxes for ID and Code */
+        .neon-box { border: 2px solid var(--primary); padding: 15px; border-radius: 20px; background: rgba(0,0,0,0.4); margin: 10px 0; font-size: 22px; font-weight: 900; box-shadow: 0 0 15px rgba(0, 198, 255, 0.3); }
 
-        button { 
-            width: 100%; padding: 16px; margin: 10px 0; border-radius: 18px; 
-            border: none; font-size: 16px; font-weight: bold; cursor: pointer; 
-            transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; color: white;
-        }
-
-        button:hover { transform: scale(1.02); filter: brightness(1.1); }
-
-        .btn-main { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
-        .btn-student { background: linear-gradient(135deg, #00b09b, #96c93d); }
-        .btn-leave { background: linear-gradient(135deg, #f093fb, #f5576c); }
-        .btn-secondary { background: #33444d; }
-        .btn-danger { background: linear-gradient(135deg, #ff4b2b, #ff0000); }
-
-        input, select { 
-            width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; 
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3); color: white;
-        }
-
+        input, select { width: 100%; padding: 15px; margin: 10px 0; border-radius: 15px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: white; box-sizing: border-box; }
         .hidden { display: none !important; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); display: none; justify-content: center; align-items: center; z-index: 9999; overflow-y: auto; }
+        .modal-box { background: #16262e; padding: 25px; border-radius: 30px; width: 92%; max-width: 600px; border: 1px solid var(--primary); }
+        
+    .letter-box {
+    background: white;
+    color: black !important;
+    padding: 40px;
+    border: 1px solid #000;
+    text-align: left;
+    font-family: serif;
+    font-size: 15px;
+    line-height: 1.7;
+    
+    /* ADD THESE 2 LINES */
+    width: 100%; 
+    box-sizing: border-box; 
+}
 
-        /* Big Distance Box */
-        .dist-box { 
-            background: rgba(255,255,255,0.05); border: 2px solid var(--primary); 
-            padding: 25px; border-radius: 25px; margin: 20px 0; font-size: 18px; font-weight: bold;
-        }
+        .letter-input { border: none; border-bottom: 1px solid #000; background: transparent; font-weight: bold; color: black !important; padding: 0 3px; }
+        #lName { width: 170px; } #lClass { width: 90px; } #lRoll { width: 45px; } #lReason { width: 220px; } #lMode { width: 130px; }
 
-        /* Professional Modals */
-        #modal, #leaveModal, #analyticsModal, #historyModal { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; 
-            z-index: 9999; overflow-y: auto;
-        }
-        .modal-box { background: #16262e; padding: 25px; border-radius: 30px; width: 92%; max-width: 650px; border: 1px solid var(--primary); }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 15px 30px; border-radius: 50px; background: #fff; color: #000; font-weight: bold; display: none; z-index: 10000; }
+        .session-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-bottom: 15px; text-align: left; border-left: 5px solid var(--primary); }
+        .absent-btn { color: var(--danger); text-decoration: underline; cursor: pointer; font-weight: bold; margin-left: 10px; }
+	.neon-box { 
+    border: 2px solid var(--primary); 
+    padding: 15px; 
+    border-radius: 20px; 
+    background: rgba(0,0,0,0.4); 
+    margin: 15px 0; 
+    font-size: 22px; 
+    font-weight: 900; 
+    letter-spacing: 2px;
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.3); 
+    color: var(--primary);
+}
+/* Eye-Catchy Header Styling */
+.brand-container {
+    margin-bottom: 30px;
+    padding-top: 10px;
+}
 
-        .letter-box { 
-            background: white; color: black !important; padding: 45px; border-radius: 4px; 
-            text-align: left; font-family: 'Times New Roman', serif; line-height: 1.8; font-size: 16px; border: 1px solid #ccc;
-        }
-        .letter-input { border: none; border-bottom: 1px solid #777; font-family: inherit; font-size: inherit; background: transparent; padding: 0 5px; color: black !important; font-weight: bold; }
+.logo-badge {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 15px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 18px; /* Square with rounded corners */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(45deg); /* Rotates the square to make a diamond badge */
+    box-shadow: 0 0 20px rgba(0, 198, 255, 0.4);
+    border: 3px solid rgba(255, 255, 255, 0.1);
+}
 
-        .analytics-card { background: rgba(255,255,255,0.07); padding: 15px; border-radius: 18px; margin-bottom: 15px; text-align: left; border-left: 5px solid var(--success); }
-        .progress-container { background: #333; height: 10px; border-radius: 10px; margin-top: 10px; overflow: hidden; }
-        .progress-bar { height: 100%; transition: 1.5s; }
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); padding: 15px 30px; border-radius: 50px; background: #fff; color: #000; font-weight: bold; z-index: 10000; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .session-item { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; margin-top: 15px; text-align: left; border-left: 5px solid var(--primary); }
-    </style>
+.badge-inner {
+    transform: rotate(-45deg); /* Counter-rotates text back to normal */
+    font-weight: 900;
+    font-size: 18px;
+    color: white;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+}
+
+.brand-title {
+    margin: 0;
+    line-height: 1.1;
+    font-size: 28px !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.college-sub {
+    color: #ffffff !important; /* Forces solid white */
+    -webkit-text-fill-color: #ffffff !important; /* Required to remove the parent gradient */
+    font-size: 13px;
+    letter-spacing: 3px;
+    font-weight: 600;
+    opacity: 1;
+    display: block;
+    margin-top: 5px;
+    text-shadow: none; /* Keeps it clean and sharp */
+}
+
+.neon-divider {
+    width: 60%;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 15px auto 0;
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Moving Spark Animation */
+.shimmer-spark {
+    width: 40px;
+    height: 100%;
+    background: var(--primary);
+    box-shadow: 0 0 15px var(--primary);
+    position: absolute;
+    left: -50px;
+    animation: sparkMove 3s infinite linear;
+}
+
+@keyframes sparkMove {
+    0% { left: -50px; }
+    100% { left: 100%; }
+}
+/* Professional Guide & Security CSS */
+.guide-container {
+    text-align: left;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 25px;
+    border-radius: 25px;
+    margin-top: 30px;
+    border: 1px solid rgba(0, 198, 255, 0.15);
+}
+
+.guide-header { margin: 0 0 20px 0; font-size: 14px; letter-spacing: 2px; color: var(--primary); font-weight: 900; }
+
+.step-list { display: flex; flex-direction: column; gap: 15px; }
+
+.step-item { display: flex; align-items: flex-start; gap: 15px; }
+
+.step-num {
+    background: var(--primary); color: #000; font-size: 11px; font-weight: 900;
+    padding: 4px 8px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 198, 255, 0.4);
+}
+
+.step-text { font-size: 13px; line-height: 1.5; color: #cbd5e1; }
+
+.security-badge {
+    margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex; align-items: center; gap: 15px;
+}
+
+.shield-icon { font-size: 24px; filter: drop-shadow(0 0 5px var(--primary)); }
+
+.security-text { font-size: 11px; color: #94a3b8; line-height: 1.5; }
+
+.security-text b { color: var(--success); letter-spacing: 1px; }
+</style>
 </head>
 <body>
 
 <div id="toast"></div>
 
-<!-- MAIN VIEW -->
+<!-- HOME -->
 <div class="card animate" id="mainView">
-    <div style="font-size: 50px;">&#x1F3EB;</div>
-    <h2>ADARSH BCA COLLEGE</h2>
-    
-    <button class="btn-main" onclick="showView('loginView')">&#x1F468;&#x200D;&#x1F3EB; Teacher Portal</button>
-    <button class="btn-student" onclick="checkStudentAccess()">&#x1F393; Student Portal</button>
-    <button class="btn-leave" onclick="showView('leaveFormView')">&#x1F4DD; Leave Application</button>
-    <button class="btn-secondary" onclick="openStudentHistory()">&#x1F4CB; My History Status</button>
-
-    <div style="text-align: left; background: rgba(0, 198, 255, 0.05); padding: 20px; border-radius: 25px; margin-top: 25px; border: 1px solid rgba(0, 198, 255, 0.1);">
-        <h4 style="margin:0; color: var(--primary);">&#x1F680; Quick Start Guide:</h4>
-        <ol style="font-size: 13px; line-height: 1.8; color: #ccc; padding-left: 20px; margin-top: 10px;">
-            <li>&#x1F4CD; Turn <b>ON GPS/Location</b> on your phone.</li>
-            <li>&#x1F511; Get today's <b>Session ID & Code</b> from teacher.</li>
-            <li>&#x1F393; Enter codes in <b>Student Portal</b> and click Verify.</li>
-            <li>&#x2705; <b>Select your Name</b> carefully and click confirm.</li>
-            <li>&#x1F6AB; <b>Warning:</b> Do not use your phone for friends. One device = One student.</li>
-        </ol>
-
-        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; margin-top: 15px; display: flex; gap: 10px; align-items: center;">
-            <div style="font-size: 20px;">&#x1F6E1;</div>
-            <p style="font-size: 11px; color: #a0acb8; line-height: 1.5; margin: 0; font-style: italic;">
-                <b>Safe & Secure:</b> This app <u>cannot</u> save or share your live location with anyone. It only calculates the distance to college to verify your presence.
-            </p>
-        </div>
+   <div class="brand-container animate">
+    <div class="logo-badge">
+        <div class="badge-inner">BCA</div>
+    </div>
+    <h2 class="brand-title">ADARSH BCA <br><span class="college-sub">COLLEGE, HADADAD</span></h2>
+    <div class="neon-divider">
+        <div class="shimmer-spark"></div>
     </div>
 </div>
+    <button class="btn-blue" onclick="showView('loginView')">&#x1F468;&#x200D;&#x1F3EB; Teacher Portal</button>
+    <button class="btn-green" onclick="showView('studentView')">&#x1F393; Student Portal</button>
+    <button class="btn-orange" onclick="showView('leaveFormView')">&#x1F4DD; Leave Application</button>
+    <button class="btn-purple" onclick="openModal('historyModal')">&#x1F4CB; My History Status</button>
+
+    <!-- PASTE THIS RIGHT AFTER YOUR LAST BUTTON (My History Status) -->
+    <div class="guide-container animate">
+        <h4 class="guide-header">&#x1F680; ATTENDANCE PROTOCOL</h4>
+        
+        <div class="step-list">
+            <div class="step-item">
+                <div class="step-num">01</div>
+                <div class="step-text"><b>Satellite Sync:</b> Activate your device's <b>GPS/Location</b> services for campus verification.</div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">02</div>
+                <div class="step-text"><b>Authorization:</b> Obtain the unique <b>Session ID & Verify Code</b> from your lecturer.</div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">03</div>
+                <div class="step-text"><b>Portal Access:</b> Navigate to the <b>Student Portal</b> and input the provided credentials.</div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">04</div>
+                <div class="step-text"><b>Identity Verification:</b> Select your legal name from the registry and <b>Confirm Presence</b>.</div>
+            </div>
+        </div>
+
+        <div class="security-badge">
+            <div class="shield-icon">&#x1F6E1;</div>
+            <div class="security-text">
+                <b>ENCRYPTED GEOFENCING</b><br>
+                This system strictly validates range proximity. Your live movement is <u>never</u> tracked, saved, or shared.
+            </div>
+        </div>
+    </div>
+</div> <!-- This is the closing div for mainView -->
+
 
 <!-- TEACHER DASHBOARD -->
 <div class="card hidden animate" id="teacherView">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0; color: var(--primary);">&#x1F468;&#x200D;&#x1F3EB; Teacher Panel</h3>
-        <button class="btn-secondary" style="width: auto; padding: 8px 15px;" onclick="showView('mainView')">Logout &#x1F6AA;</button>
-    </div>
-    
-    <button class="btn-main" onclick="hCreateSession()">&#x2795; Create Session ID</button>
-    <div id="sQR" class="qr-box hidden" style="margin: 10px auto;"></div>
-    <div id="sDisplay" class="display-text"></div>
-    <button class="btn-student" onclick="hCreateCode()">&#x1F511; Generate Verify Code</button>
-    <div id="cQR" class="qr-box hidden" style="margin: 10px auto;"></div>
-    <div id="cDisplay" class="display-text" style="color:var(--success)"></div>
-
-    <hr style="border: 0.5px solid #33444d; margin: 20px 0;">
-    <h4>&#x1F4CB; Manual Entry</h4>
+    <h3>Teacher Dashboard</h3>
+    <button class="btn-blue" onclick="hCreateSession()">&#x2795; Create Session ID</button>
+    <div id="sDisplay" class="neon-box hidden"></div>
+    <div id="sQR" style="display:flex; justify-content:center; margin:10px;"></div>
+    <button class="btn-green" onclick="hCreateCode()">&#x1F511; Generate Verify Code</button>
+    <div id="cDisplay" class="neon-box hidden" style="border-color:var(--success); color:var(--success);"></div>
+    <hr style="border: 0.1px solid #333; margin:20px 0;">
     <select id="teacherStudList"></select>
-    <button class="btn-student" onclick="markManually()">&#x2705; Mark Present</button>
-
-    <hr style="border: 0.5px solid #33444d; margin: 20px 0;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button style="background:#ff9800;" onclick="viewAnalytics()">&#x1F4CA; Analytics</button>
-        <button style="background:#6a11cb;" onclick="viewLeaves()">&#x1F4E9; View Leaves</button>
-        <button class="btn-main" onclick="downloadCSV()">&#x1F4E5; Report</button>
-        <button class="btn-secondary" onclick="loadDashboard()">&#x1F504; History</button>
+    <button class="btn-green" onclick="markManually()">&#x2705; Mark Present Manually</button>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button class="btn-purple" onclick="openModal('analyticsModal'); viewAnalytics();">&#x1F4CA; Analytics</button>
+        <button class="btn-orange" onclick="openModal('leaveModal'); viewLeaves();">&#x1F4E9; Leaves</button>
+        <button class="btn-blue" onclick="downloadCSV('today')">&#x1F4C5; Today CSV</button>
+        <button class="btn-blue" onclick="downloadCSV('year')">&#x1F4D6; Yearly CSV</button>
     </div>
-    <div id="historyList"></div>
-    <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button class="btn-danger" onclick="confirmReset('att')">&#x1F5D1; Reset Att.</button>
-        <button class="btn-danger" style="opacity: 0.6;" onclick="confirmReset('sess')">&#x1F5D1; Reset Hist.</button>
+    <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center;">
+        <b>History</b> <button class="btn-sec" style="width:auto; padding:5px 15px; font-size:12px;" onclick="loadDashboard()">&#x1F504; Refresh</button>
     </div>
+	<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+    <button class="btn-red" style="font-size:11px; box-shadow: 0 0 10px rgba(255, 75, 43, 0.3);" onclick="resetData('att')">&#x1F5D1; Reset Attendance</button>
+    <button class="btn-red" style="font-size:11px; opacity:0.8;" onclick="resetData('sess')">&#x26A0; Reset History</button>
+</div>
+    <div id="dashList"></div>
+    <button class="btn-red" onclick="showView('mainView')">Logout</button>
 </div>
 
-<!-- TEACHER LOGIN -->
-<div class="card hidden animate" id="loginView">
-    <div style="font-size: 40px;">&#x1F512;</div>
-    <h3>Admin Access</h3>
-    <input type="password" id="adminPass" placeholder="Enter Admin Password">
-    <button class="btn-main" onclick="doSecureLogin()">&#x1F680; Secure Login</button>
-    <button class="btn-secondary" onclick="showView('mainView')">&#x2B05; Back Home</button>
-</div>
 
 <!-- STUDENT PORTAL -->
 <div class="card hidden animate" id="studentView">
-    <div style="font-size: 40px;">&#x1F393;</div>
     <h3>Student Portal</h3>
-    <div id="sVerify">
+    <div id="sInputs">
         <input id="isid" placeholder="Session ID">
         <input id="icode" placeholder="Verify Code">
-        <button class="btn-main" onclick="requestGPS()">&#x1F6F0; Verify Location & Codes</button>
+        <button class="btn-blue" onclick="requestGPS()">&#x1F6F0; Verify Location</button>
     </div>
-    <div id="distanceDisplay" class="dist-box hidden"></div>
+    <div id="distBox" class="hidden" style="padding:15px; border-radius:15px; background:rgba(0,198,255,0.1); border:1px solid var(--primary); margin:10px 0;"></div>
     <div id="sMark" class="hidden">
         <select id="studSelect"></select>
-        <button id="pBtn" class="btn-student" onclick="submitFinal()">&#x2705; Confirm My Attendance</button>
+        <button class="btn-green" onclick="submitFinal()">Confirm Attendance</button>
     </div>
-    <div id="status" style="margin-top:15px; font-size:14px; opacity: 0.7;">&#x231B; Ready</div>
-    <button class="btn-secondary" onclick="showView('mainView')">&#x1F3E0; Back Home</button>
+    <button class="btn-sec" onclick="showView('mainView')">Back</button>
 </div>
 
-<!-- LEAVE FORM (Restored Original Content) -->
+<!-- LEAVE FORM (Formal Long Content) -->
 <div class="card hidden animate" id="leaveFormView">
-    <div class="letter-box">
-        <div style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px; padding-bottom: 10px;">
-            <h2 style="margin:0; color: black;">ADARSH BCA COLLEGE - BOTAD</h2>
-        </div>
-        To,<br><b>Krishna Mam</b>,<br>ADARSH BCA COLLEGE, Botad.<br><br>
-        <b>Subject: Formal Application for Grant of Leave of Absence</b><br><br>
+    <div class="letter-box animate" id="leaveContent">
+        <center><h2 style="font-size:20px; color:black; text-shadow:none;">ADARSH BCA COLLEGE, HADADAD</h2></center>
+        To, <br><b>The Class Coordinator (Krishna Mam)</b>,<br>Adarsh BCA College, Hadadad.<br><br>
+        <b>Subject: Formal Request for Grant of Leave of Absence</b><br><br>
         Respected Madam,<br><br>
-        With due respect and humble submission, I beg to state that I, <input id="lName" class="letter-input" style="width:200px" placeholder="Student Full Name" oninput="updateSig()">, 
-        am a student of Class <input id="lClass" class="letter-input" style="width:100px" placeholder="Enter Class">, 
-        Roll No <input id="lRoll" class="letter-input" style="width:50px" placeholder="Roll No">. 
-        My residential address is <input id="lAddress" class="letter-input" style="width:85%" placeholder="Enter Full Address">.<br><br>
-        
-        I wish to inform you that I will be unable to attend the college because of 
-        <b><select id="lReason" class="letter-input" onchange="toggleDateOptions()">
-            <option value="Severe Sickness">Severe Sickness / Fever</option>
-            <option value="Urgent Family Work">Urgent Family Work</option>
-            <option value="an Out of Station Trip">Out of Station Trip</option>
-        </select></b>. I request leave for:<br><br>
-        
-        <div id="dateArea"><b>Date:</b> <input id="lDateSingle" type="date" class="letter-input"></div>
-        <div id="rangeArea" class="hidden">
-            <select id="dateMode" class="letter-input" onchange="toggleDateOptions()">
-                <option value="single">Single Day</option><option value="range">Date to Date</option>
-            </select><br>
-            <input id="lDateOutSingle" type="date" class="letter-input">
-            <div id="rangeOutDate" class="hidden">From: <input id="lDateFrom" type="date" class="letter-input"> To: <input id="lDateTo" type="date" class="letter-input"></div>
-        </div>
-        <br>I assure you that I will be diligent in catching up with the missed syllabus immediately upon my return. Please grant me leave for the mentioned duration. I shall be highly obliged.<br><br>
-        Yours obediently,<br><br>
-        <b>Student Name: <span id="sigName">_______</span></b><br>
-        <b>Contact No:</b> <input id="lPhone" class="letter-input" style="width:130px" placeholder="Phone Number">
+        With profound respect and humble submission, I, <input id="lName" class="letter-input" placeholder="Full Name" oninput="document.getElementById('sigName').innerText=this.value">, 
+        a student of class <input id="lClass" class="letter-input" placeholder="Class"> bearing Roll No: <input id="lRoll" class="letter-input" placeholder="No">, 
+        beg to bring to your kind notice that I am unable to attend the college academic sessions due to: 
+        <select id="lReason" class="letter-input">
+            <option value="Medical Sickness">Medical Sickness / Fever</option><option value="Family Function">Family Function</option><option value="Out of Station">Out of Station Travel</option><option value="Urgent Personal Work">Urgent Personal Work</option>
+        </select>.<br><br>
+        I request you to kindly grant me leave for the following duration: 
+        <select id="lMode" class="letter-input" onchange="toggleDateMode()">
+            <option value="single">A Single Date</option><option value="range">A Period of Dates</option>
+        </select><br><br>
+        <div id="sDateWrap">Date: <input type="date" id="lDateS" class="letter-input"></div>
+        <div id="rDateWrap" class="hidden">From: <input type="date" id="lDateF" class="letter-input"> To: <input type="date" id="lDateT" class="letter-input"></div><br>
+        I assure you that I will be diligent in catching up with the missed syllabus and complete all pending assignments promptly upon my return. I shall be highly obliged for your kind consideration.<br><br>
+        Address: <input id="lAddress" class="letter-input" style="width:75%" placeholder="Residential Address"><br>
+        Phone: <input id="lPhone" class="letter-input" placeholder="Phone Number"><br><br>
+        Yours obediently,<br><b><span id="sigName">_______</span></b>
     </div>
-    <button class="btn-leave" style="margin-top: 20px;" onclick="submitLeave()">🚀 Submit Application</button>
-    <button class="btn-secondary" onclick="showView('mainView')">Cancel</button>
+    <button class="btn-orange" style="margin-top:20px" onclick="submitLeave()">&#x1F680; Submit Application</button>
+    <button class="btn-sec" onclick="showView('mainView')">Cancel</button>
 </div>
 
 <!-- MODALS -->
-<div id="analyticsModal"><div class="modal-box"><h3>&#x1F4CA; Analytics</h3><input type="text" id="anaSearch" placeholder="&#x1F50D; Search..." oninput="filterAna()"><div id="anaList" style="margin-top:20px; max-height:50vh; overflow-y:auto;"></div><button class="btn-secondary" onclick="closeModal('analyticsModal')">Close</button></div></div>
-<div id="historyModal"><div class="modal-box"><h3>&#x1F4CB; My Record</h3><input type="number" id="checkRoll" placeholder="Roll No"><button class="btn-student" onclick="fetchMyHistory()">&#x1F50D; Find</button><div id="myHistoryList" style="margin-top:15px;"></div><button class="btn-secondary" onclick="closeModal('historyModal')">Close</button></div></div>
-<div id="modal"><div class="modal-box"><h3>&#x274C; Absents</h3><div id="absentNames" style="text-align:left;"></div><button class="btn-secondary" onclick="closeModal('modal')">Close</button></div></div>
-<div id="leaveModal"><div class="modal-box"><h3>&#x1F4E9; Applications</h3><div id="pdfContainer"></div><button class="btn-secondary" onclick="closeModal('leaveModal')">Close Window</button></div></div>
+<div id="absentModal" class="modal"><div class="modal-box"><h3>Absent Students</h3><div id="absentList" style="text-align:left; line-height:2;"></div><button class="btn-red" onclick="closeModal('absentModal')">Close</button></div></div>
+<div id="historyModal" class="modal"><div class="modal-box"><h3>Yearly Stats</h3><input type="number" id="hRoll" placeholder="Roll No"><button class="btn-blue" onclick="fetchHistory()">Find Records</button><div id="hResult"></div><button class="btn-sec" onclick="closeModal('historyModal')">Close</button></div></div>
+<!-- UPDATED ANALYTICS MODAL -->
+<div id="analyticsModal" class="modal">
+    <div class="modal-box" style="max-width: 600px;">
+        <h3 style="color:var(--primary);">&#x1F4CA; Student Analytics</h3>
+        
+        <!-- Search Bar -->
+        <input type="text" id="anaSearch" placeholder="&#x1F50D; Search Name or Roll No..." oninput="filterAnalytics()" 
+               style="background:rgba(255,255,255,0.1); border:1px solid var(--primary); margin-bottom:15px;">
+        
+        <div id="anaResult" style="max-height:60vh; overflow-y:auto; padding-right:5px;">
+            <!-- Analytics cards will appear here -->
+        </div>
+        
+        <button class="btn-sec" onclick="closeModal('analyticsModal')" style="margin-top:15px;">Close</button>
+    </div>
+</div>
+<!-- UPDATED LEAVE MODAL -->
+<div id="leaveModal" class="modal">
+    <div class="modal-box" style="max-width: 700px;">
+        <h3 style="color:var(--primary);">&#x1F4E9; Leave Applications</h3>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <!-- Search Bar -->
+            <input type="text" id="leaveSearch" placeholder="&#x1F50D; Search Name or Roll..." oninput="filterLeaves()" 
+                   style="background:rgba(255,255,255,0.1); border:1px solid var(--primary); margin:0;">
+            
+            <!-- Application Counter -->
+            <div id="leaveCount" style="background:var(--primary); color:black; padding:10px; border-radius:12px; font-weight:bold; min-width:80px; display:flex; align-items:center; justify-content:center;">
+                0 Slips
+            </div>
+        </div>
+        
+        <div id="leaveResult" style="max-height:60vh; overflow-y:auto; padding-right:5px;">
+            <!-- Leave cards will appear here -->
+        </div>
+        
+        <button class="btn-sec" onclick="closeModal('leaveModal')" style="margin-top:15px;">Close Panel</button>
+    </div>
+</div>
+<div id="loginView" class="card hidden animate"><h3>Teacher Access</h3><input type="password" id="admPass" placeholder="Password"><button class="btn-blue" onclick="doLogin()">Login</button><button class="btn-sec" onclick="showView('mainView')">Back</button></div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbycomfmtgP6QDiXJeQx9KP0iik89F7w0ZHeSdl1l0HJUwUqtelaZGj6m7q3PlK3rBEHiQ/exec"; 
-    let uLat, uLon, students, dashboardData, activeSid, analyticsData;
+    const SURL = "https://script.google.com/macros/s/AKfycbwGzw-kDqtKz2jPz18TVxkf91cEAZnnmaLErPgnylch-MbMNw4vb3PDLqcoWet085vw/exec"; 
+    let students, activeSid, dashData;
+	
 
-    function getFingerprint() { return [navigator.userAgent, screen.width + 'x' + screen.height].join('|'); }
-    function showNotify(msg, type = 'default') { const t = document.getElementById('toast'); t.innerText = msg; t.style.background = type === 'error' ? 'var(--danger)' : (type === 'success' ? 'var(--success)' : '#fff'); t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 3500); }
-    function showView(id) { document.querySelectorAll('.card').forEach(v => v.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id === 'teacherView') { loadDashboard(); loadStudentsForTeacher(); } }
-    async function doSecureLogin() { const pass = document.getElementById('adminPass').value; const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"login", password: pass}) }); if (await res.text() === "SUCCESS") showView('teacherView'); else showNotify("&#x274C; Unauthorized", "error"); }
-    function openStudentHistory() { document.getElementById('historyModal').style.display = 'flex'; }
-    async function fetchMyHistory() { const roll = document.getElementById('checkRoll').value; const res = await fetch(`${SURL}?action=getStudentHistory&roll=${roll}`); const data = await res.json(); document.getElementById('myHistoryList').innerHTML = data.map(h => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444;"><span>${h.date}</span><span>${h.status}</span></div>`).join('') || "No records."; }
-    async function viewAnalytics() { showNotify("&#x1F4C8; Loading..."); const res = await fetch(`${SURL}?action=getAnalytics`); analyticsData = await res.json(); renderAnalytics(analyticsData); document.getElementById('analyticsModal').style.display = 'flex'; }
-    function renderAnalytics(data) { document.getElementById('anaList').innerHTML = data.map(s => `<div class="analytics-card" style="border-left-color:${s.percent < 75 ? 'var(--danger)' : 'var(--success)'}"><b>${s.name}</b> (Roll: ${s.roll})<br><small>Present: ${s.count} | Total: ${s.total}</small><div class="progress-container"><div class="progress-bar" style="width:${s.percent}%; background:${s.percent < 75 ? 'var(--danger)' : 'var(--success)'}"></div></div><div style="text-align:right; font-size:12px; margin-top:3px; font-weight:bold;">${s.percent}%</div></div>`).join(''); }
-    function filterAna() { const q = document.getElementById('anaSearch').value.toLowerCase(); renderAnalytics(analyticsData.filter(s => s.name.toLowerCase().includes(q) || s.roll.toString().includes(q))); }
+    function showNotify(m, t) { 
+    const b = document.getElementById('toast'); 
+    b.innerHTML = m; // Changed from innerText to innerHTML
+    b.style.background = t==='error'?'#ff4b2b':'#fff'; 
+    b.style.display = 'block'; 
+    setTimeout(()=>b.style.display='none', 3000); 
+}
+    function showView(id) { document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); if(id==='teacherView') { loadStudents(); loadDashboard(); } }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function checkStudentAccess() { if (localStorage.getItem("att_lock") === new Date().toLocaleDateString()) { showNotify("&#x1F512; Locked today.", "error"); showView('mainView'); } else showView('studentView'); }
-    function requestGPS() { navigator.geolocation.getCurrentPosition(pos => { uLat = pos.coords.latitude; uLon = pos.coords.longitude; verifyAndLoadData(); }, () => showNotify("&#x274C; GPS Denied", "error"), { enableHighAccuracy: true }); }
-    async function verifyAndLoadData() {
-        const distDiv = document.getElementById('distanceDisplay'); const locRes = await fetch(`${SURL}?action=checkLocation&lat=${uLat}&lon=${uLon}`); const locData = await locRes.json(); distDiv.classList.remove('hidden');
-        if (locData.status === "IN_RANGE") {
-            distDiv.className = "dist-box dist-success"; distDiv.innerHTML = `&#x1F4CD; Distance: ${locData.distance} km<br>&#x2705; Success: You can attend.`;
-            const sessions = await (await fetch(`${SURL}?action=getSessions&t=${Date.now()}`)).json();
-            if(sessions.find(x => x.session === document.getElementById('isid').value && x.code === document.getElementById('icode').value)) {
-                students = await (await fetch(`${SURL}?action=getStudents`)).json(); document.getElementById('sVerify').classList.add('hidden'); document.getElementById('sMark').classList.remove('hidden'); document.getElementById('studSelect').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join('');
-            } else showNotify("Invalid Codes", "error");
-        } else { distDiv.className = "dist-box dist-error"; distDiv.innerHTML = `&#x1F4CD; Distance: ${locData.distance} km<br>&#x274C; Error: Not in college.`; }
+
+    async function doLogin() {
+    const btn = event.target;
+    const originalText = btn.innerHTML; // Changed to innerHTML
+    btn.innerHTML = "&#x231B; Authenticating..."; // Now this will show the emoji ⌛
+    
+    const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"login", password:document.getElementById('admPass').value})});
+    if(await res.text()==="SUCCESS") {
+        showView('teacherView');
+    } else {
+        showNotify("&#x274C; Invalid Password", "error"); // Added emoji here too
     }
+    btn.innerHTML = originalText; // Reset to original
+}
+
+    prefetchData();
+
+// Modify your existing loadStudents function to use the cache
+async function loadStudents() {
+    if (studentListCached) {
+        const h = studentListCached.map((s,i)=>`<option value="${i}">${s[0]} (${s[2]})</option>`).join('');
+        document.getElementById('teacherStudList').innerHTML = h;
+        document.getElementById('studSelect').innerHTML = h;
+    } else {
+        await prefetchData();
+    }
+}
+
+    async function hCreateSession() {
+    activeSid = "SESS-" + Math.floor(100000 + Math.random()*900000);
+    const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"createSession", session:activeSid})});
+    const txt = await res.text();
+    if(txt.includes("EXISTS")) activeSid = txt.split("|")[1];
+    
+    // Only show text ID, QR removed
+    const sD = document.getElementById('sDisplay');
+    sD.innerText = "SESSION ID: " + activeSid;
+    sD.classList.remove('hidden');
+    document.getElementById('sQR').innerHTML = ""; // Ensure QR div is empty
+    showNotify("&#x2705; Session ID Ready");
+}
+
+    async function hCreateCode() {
+    if(!activeSid) return showNotify("?? Create Session First", "error");
+    let c = Math.floor(1000 + Math.random()*8999).toString();
+    const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"updateCode", session:activeSid, code:c})});
+    const txt = await res.text();
+    if(txt.includes("CODE_EXISTS")) c = txt.split("|")[1];
+    
+    // Only show text Code, QR removed
+    const cD = document.getElementById('cDisplay');
+    cD.innerText = "VERIFY CODE: " + c;
+    cD.classList.remove('hidden');
+    showNotify("&#x1F511; Code Generated");
+}
+async function resetData(target) {
+    if(!confirm("&#x26A0; Are you sure? This will PERMANENTLY DELETE data!")) return;
+    showNotify("? Processing...");
+    const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type: target === 'att' ? "resetAttendance" : "resetSessions"}) });
+    if(await res.text() === "SUCCESS") { showNotify("&#x1F5D1; Data Wiped", "success"); loadDashboard(); }
+}
+
+    function toggleDateMode() {
+        const mode = document.getElementById('lMode').value;
+        document.getElementById('sDateWrap').style.display = (mode === 'single' ? 'block' : 'none');
+        document.getElementById('rDateWrap').classList.toggle('hidden', mode === 'single');
+    }
+
+    async function requestGPS() {
+        const box = document.getElementById('distBox'); box.classList.remove('hidden'); box.innerHTML = "&#x1F4CD; Finding location... Please wait.";
+        navigator.geolocation.getCurrentPosition(async p => {
+            const res = await fetch(`${SURL}?action=checkLocation&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+            const loc = await res.json();
+            if(loc.status==="IN_RANGE") {
+                box.innerHTML = `&#x2705; Range: ${loc.distance}km (In Range)`;
+                const sres = await fetch(`${SURL}?action=getSessions`);
+                const sess = await sres.json();
+                if(sess.find(x => x[1].toString()===document.getElementById('isid').value && x[2].toString()===document.getElementById('icode').value)) {
+                    await loadStudents(); document.getElementById('sInputs').classList.add('hidden'); document.getElementById('sMark').classList.remove('hidden');
+                } else showNotify("Invalid Codes", "error");
+            } else { box.innerHTML = `? Range: ${loc.distance}km (Out of Range)`; showNotify("Range Denied", "error"); }
+        });
+    }
+
     async function submitFinal() {
-        const stud = students[document.getElementById('studSelect').value]; const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type: "markPresent", session: document.getElementById('isid').value, name: stud.name, roll: stud.roll, class: stud.class, lat: uLat, lon: uLon, fingerprint: getFingerprint() })});
-        if(await res.text() === "SUCCESS") { localStorage.setItem("att_lock", new Date().toLocaleDateString()); document.getElementById('sMark').innerHTML = "<h3>&#x2705; Success!</h3>"; } else showNotify("Security Block", "error");
+    const selectedIdx = document.getElementById('studSelect').value;
+    const s = studentListCached[selectedIdx]; // Using cached list for speed
+    
+    const res = await fetch(SURL, {
+        method: "POST", 
+        body: JSON.stringify({
+            type: "markPresent", 
+            session: document.getElementById('isid').value, 
+            name: s[0], 
+            roll: s[2], 
+            class: s[1], 
+            fingerprint: navigator.userAgent
+        })
+    });
+    
+    const result = await res.text();
+    if (result === "SUCCESS") {
+        document.getElementById('sMark').innerHTML = "<h3>✅ Attendance Success!</h3>";
+    } else {
+        showNotify(result === "ALREADY_MARKED" ? "⚠️ Already marked!" : "❌ Error marking", "error");
     }
-    async function hCreateSession() { activeSid = "SESS-" + Math.floor(100000 + Math.random()*900000); document.getElementById('sQR').innerHTML = ""; document.getElementById('sQR').classList.remove('hidden'); new QRCode(document.getElementById('sQR'), { text: activeSid, width: 160, height: 160 }); document.getElementById('sDisplay').innerText = activeSid; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"createSession", session: activeSid}) }); }
-    async function hCreateCode() { if(!activeSid) return showNotify("➕ Create Session First", "error"); let code = Math.floor(1000 + Math.random()*8999).toString(); document.getElementById('cQR').innerHTML = ""; document.getElementById('cQR').classList.remove('hidden'); new QRCode(document.getElementById('cQR'), { text: code, width: 160, height: 160 }); document.getElementById('cDisplay').innerText = "VERIFY: " + code; await fetch(SURL, { method: "POST", body: JSON.stringify({type:"updateCode", session: activeSid, code: code}) }); }
-    async function loadStudentsForTeacher() { const res = await fetch(`${SURL}?action=getStudents`); students = await res.json(); document.getElementById('teacherStudList').innerHTML = students.map((s,i) => `<option value="${i}">${s.name} (${s.roll})</option>`).join(''); }
-    async function markManually() { if(!activeSid) return showNotify("Session First", "error"); const stud = students[document.getElementById('teacherStudList').value]; const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type:"markPresent", session: activeSid, name: stud.name, roll: stud.roll, class: stud.class, fingerprint: "MANUAL"}) }); if(await res.text() === "SUCCESS") showNotify("&#x2705; Marked!", "success"); }
-    async function loadDashboard() { const res = await fetch(`${SURL}?action=getDashboard&t=${Date.now()}`); dashboardData = await res.json(); document.getElementById('historyList').innerHTML = dashboardData.map((item, i) => `<div class="session-item"><small>${new Date(item.date).toLocaleString()}</small><div>🆔 ${item.sid} | 🔑 ${item.code}</div><div class="stat-line"><span style="color:var(--success)">&#x2705; Present: ${item.present}</span><span class="absent-link" onclick="openAbsents(${i})">&#x274C; Absent: ${item.absent}</span></div></div>`).join(''); }
-    async function viewLeaves() { const res = await fetch(SURL + "?action=getLeaves"); const data = await res.json(); data.shift(); document.getElementById('pdfContainer').innerHTML = data.map((r, i) => `<div class="letter-box" style="margin-bottom:30px;"><h2 style="text-align:center;">ADARSH BCA COLLEGE</h2>To, Krishna Mam. I <b>${r[1]}</b>, Roll <b>${r[3]}</b> request leave on <b>${r[5].split(',')[0]}</b> due to <b>${r[6]}</b>.<div class="no-print" style="margin-top:20px;display:flex;gap:10px;"><button onclick="downloadOne(${i})" style="background:#000;color:#fff;">&#x1F4E5; PDF</button><button onclick="confirmDeleteInList(${i})" style="background:#ff4b2b;color:#fff;">&#x1F5D1; Delete</button></div></div>`).join(''); document.getElementById('leaveModal').style.display = 'flex'; }
-    async function confirmDeleteInList(idx) { if(confirm("&#x1F5D1; Delete?")) { await fetch(SURL, { method: "POST", body: JSON.stringify({type:"deleteLeave", index: idx}) }); showNotify("Deleted!", "success"); closeModal('leaveModal'); } }
-    function downloadOne(idx) { const el = document.querySelectorAll('#pdfContainer > .letter-box')[idx].cloneNode(true); el.querySelector('.no-print').remove(); html2pdf().set({ margin: 10, filename: 'Leave_App.pdf', html2canvas: { scale: 3 } }).from(el).save(); }
-    function confirmReset(type) { if(confirm("Reset?")) { fetch(SURL, { method: "POST", body: JSON.stringify({type: type === 'att' ? "resetAttendance" : "resetSessions"}) }).then(() => location.reload()); } }
-    function openAbsents(i) { document.getElementById('absentNames').innerHTML = dashboardData[i].absentNames.join("<br>"); document.getElementById('modal').style.display = 'flex'; }
-    function updateSig() { document.getElementById('sigName').innerText = document.getElementById('lName').value || "_______"; }
-    function toggleDateOptions() { const out = document.getElementById('lReason').value === "an Out of Station Trip"; const isRange = document.getElementById('dateMode').value === "range"; document.getElementById('rangeArea').classList.toggle('hidden', !out); document.getElementById('dateArea').classList.toggle('hidden', out); document.getElementById('lDateOutSingle').classList.toggle('hidden', isRange); document.getElementById('rangeOutDate').classList.toggle('hidden', !isRange); }
-    async function submitLeave() { let d = document.getElementById('lDateSingle').value; if(document.getElementById('lReason').value === "an Out of Station Trip") { d = (document.getElementById('dateMode').value === "single") ? document.getElementById('lDateOutSingle').value : document.getElementById('lDateFrom').value + " to " + document.getElementById('lDateTo').value; } const data = { type:"submitLeave", name:document.getElementById('lName').value, class:document.getElementById('lClass').value, roll:document.getElementById('lRoll').value, address:document.getElementById('lAddress').value, dates:d, reason:document.getElementById('lReason').value }; await fetch(SURL, { method: "POST", body: JSON.stringify(data) }); showNotify("🚀 Submitted!", "success"); showView('mainView'); }
-    async function downloadCSV() { const res = await fetch(SURL + "?action=downloadReport"); const data = await res.json(); let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n"); const link = document.createElement("a"); link.href = encodeURI(csv); link.download = "Attendance.csv"; link.click(); }
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
+}
+
+    async function loadDashboard() {
+    const res = await fetch(`${SURL}?action=getDashboard`);
+    dashData = await res.json();
+    document.getElementById('dashList').innerHTML = dashData.map((i, idx)=>`
+        <div class="session-item">
+            <small>${i.date}</small><br>
+            <b>&#x1F194; ${i.sid} | &#x1F511; ${i.code}</b><br>
+            &#x2705; Present: ${i.present} | <span style="color:var(--danger); cursor:pointer; font-weight:bold;" onclick="showAbsents(${idx})">&#x274C; Absent: ${i.absent}</span>
+        </div>`).join('');
+}
+
+function showAbsents(idx) {
+    const names = dashData[idx].absentNames.map(n => "?? " + n).join("<br>") || "No absents!";
+    document.getElementById('absentList').innerHTML = `<div style="color:white; padding:10px;">${names}</div>`;
+    openModal('absentModal');
+}
+
+    function showAbsents(idx) {
+        document.getElementById('absentList').innerHTML = dashData[idx].absentNames.map(n => "&#x1F464; " + n).join("<br>") || "No absents!";
+        openModal('absentModal');
+    }
+	
+	let globalLeaveData = []; // Store for searching
+
+    async function viewLeaves() {
+    openModal('leaveModal');
+    document.getElementById('leaveResult').innerHTML = "<p>&#x1F4CB; Fetching leave records...</p>";
+    
+    try {
+        const res = await fetch(`${SURL}?action=getLeaves`);
+        const data = await res.json();
+        data.shift(); // Remove headers
+        globalLeaveData = data;
+        renderLeaves(globalLeaveData);
+    } catch (e) {
+        showNotify("Error loading leaves", "error");
+    }
+}
+
+// Function to render the leave "slips" in the list
+function renderLeaves(data) {
+    const container = document.getElementById('leaveResult');
+    document.getElementById('leaveCount').innerText = data.length + " Slips";
+
+    if (data.length === 0) {
+        container.innerHTML = "<p style='color:white; opacity:0.6;'>No leave applications found.</p>";
+        return;
+    }
+
+    container.innerHTML = data.map((l, i) => `
+        <div class="animate" style="background:#fff; color:#000 !important; padding:20px; border-radius:15px; margin-bottom:15px; border: 2px solid #000; text-align:left; position:relative;">
+            <div style="border-bottom:1px solid #ddd; padding-bottom:8px; margin-bottom:10px; font-weight:bold; font-size:12px; color:#555;">
+                &#x1F4CB; ADARSH BCA, HADADAD - LEAVE SLIP
+            </div>
+            
+            <div style="font-size:14px; line-height:1.6;">
+                <b>Student:</b> ${l[1]} (Roll: ${l[2]})<br>
+                <b>Class:</b> ${l[3]} | <b>Contact:</b> ${l[5]}<br>
+                <b>Reason:</b> ${l[6]}<br>
+                <b>Dates:</b> <span style="background:#fff9c4; padding:2px 5px; border-radius:4px;">${l[7]}</span>
+            </div>
+
+            <div style="margin-top:15px; display:flex; gap:10px;">
+                <button onclick="generateTextPDF(${i})" style="width:auto; padding:8px 15px; font-size:12px; background:#000; color:#fff; border-radius:8px;">&#x1F4E5; Download A4 PDF</button>
+                <button onclick="hDeleteLeave(${i})" style="width:auto; padding:8px 15px; font-size:12px; background:#ff4b2b; color:#fff; border-radius:8px; border:none;"> &#x1F5D1; Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Filter Function
+function filterLeaves() {
+    const query = document.getElementById('leaveSearch').value.toLowerCase();
+    const filtered = globalLeaveData.filter(l => 
+        l[1].toLowerCase().includes(query) || 
+        l[2].toString().includes(query)
+    );
+    renderLeaves(filtered);
+}
+
+// THE TEXT-BASED A4 PDF SOLUTION
+function generateTextPDF(index) {
+    const l = globalLeaveData[index];
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20; 
+    const contentWidth = pageWidth - (margin * 2);
+    let y = 30;
+
+    // Header (Centered)
+    doc.setFont("times", "bold");
+    doc.setFontSize(20);
+    doc.text("ADARSH BCA COLLEGE, HADADAD", pageWidth / 2, y, { align: "center" });
+    y += 10;
+    doc.setFontSize(12);
+    doc.text("OFFICIAL LEAVE APPLICATION", pageWidth / 2, y, { align: "center" });
+
+    y += 20;
+    // Formal Addressing (Left Aligned)
+    doc.setFont("times", "normal");
+    doc.setFontSize(14);
+    doc.text("To,", margin, y);
+    y += 8;
+    doc.setFont("times", "bold");
+    doc.text("The Class Coordinator (Krishna Mam),", margin, y);
+    y += 7;
+    doc.text("Adarsh BCA College, Hadadad.", margin, y);
+
+    y += 15;
+    doc.text("Subject: Formal Request for Grant of Leave of Absence", margin, y);
+
+    y += 15;
+    doc.setFont("times", "normal");
+    doc.text("Respected Madam,", margin, y);
+    
+    y += 10;
+    // The formal long content
+    const letterBody = `With profound respect and humble submission, I ${l[1]}, a student of Class ${l[3]} bearing Roll No: ${l[2]}, beg to bring to your kind notice that I am unable to attend the college academic sessions due to ${l[6]}.
+
+This situation has made it unavoidable for me to remain absent. Therefore, I sincerely request you to kindly grant me leave for the following period: ${l[7]}.
+
+I fully understand the importance of my attendance and I assure you that I will be diligent in catching up with the missed syllabus and practical assignments immediately upon my return to college. I shall be highly obliged for your consideration.`;
+
+    const splitText = doc.splitTextToSize(letterBody, contentWidth);
+    doc.text(splitText, margin, y);
+
+    y += (splitText.length * 7) + 10;
+    // Contact details
+    doc.setFont("times", "bold");
+    doc.text("Student Details:", margin, y);
+    y += 8;
+    doc.setFont("times", "normal");
+    doc.text(`Residential Address: ${l[4]}`, margin, y);
+    y += 7;
+    doc.text(`Mobile Number: ${l[5]}`, margin, y);
+
+    y += 20;
+    doc.text("Yours obediently,", margin, y);
+    y += 10;
+    doc.setFont("times", "bold");
+    doc.setFontSize(16);
+    doc.text(l[1], margin, y); // Student Name Signature
+
+    doc.save(`Leave_Letter_${l[2]}.pdf`);
+}
+
+    function downloadLetterPDF(i) {
+    const l = allLeavesData[i]; // Ensure your data is stored in this variable
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4'); // Set A4 Size
+
+    const margin = 20; // 20mm Equal Margins (Left & Right)
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const contentWidth = pageWidth - (margin * 2);
+    let y = 30; // Top Margin
+
+    // Header - Centered
+    doc.setFont("times", "bold");
+    doc.setFontSize(20);
+    doc.text("ADARSH BCA COLLEGE, HADADAD", pageWidth / 2, y, { align: "center" });
+    y += 10;
+    doc.setFontSize(12);
+    doc.text("OFFICIAL LEAVE APPLICATION", pageWidth / 2, y, { align: "center" });
+
+    y += 20;
+    // Formal Addressing - Left Aligned
+    doc.setFont("times", "normal");
+    doc.setFontSize(14);
+    doc.text("To,", margin, y);
+    y += 8;
+    doc.setFont("times", "bold");
+    doc.text("The Class Coordinator (Krishna Mam),", margin, y);
+    y += 7;
+    doc.text("Adarsh BCA College, Hadadad.", margin, y);
+
+    y += 15;
+    doc.text("Subject: Formal Request for Grant of Leave of Absence", margin, y);
+
+    y += 15;
+    doc.setFont("times", "normal");
+    doc.text("Respected Madam,", margin, y);
+    
+    y += 10;
+    // Long meaningful content
+    const bodyText = `With profound respect, I ${l[1]}, a student of Class ${l[3]} bearing Roll No: ${l[2]}, beg to bring to your kind notice that I am unable to attend college due to ${l[6]}.
+
+This situation is unavoidable, therefore I request you to kindly grant me leave for the period: ${l[7]}.
+
+I assure you that I will be diligent in catching up with the missed syllabus immediately upon my return. I shall be highly obliged for your consideration.`;
+
+    // Automatic Text Wrapping for A4 Width
+    const splitText = doc.splitTextToSize(bodyText, contentWidth);
+    doc.text(splitText, margin, y);
+
+    y += (splitText.length * 7) + 15;
+    // Contact Info
+    doc.text(`Address: ${l[4]}`, margin, y);
+    y += 7;
+    doc.text(`Mobile: ${l[5]}`, margin, y);
+
+    y += 20;
+    doc.text("Yours obediently,", margin, y);
+    y += 10;
+    doc.setFont("times", "bold");
+    doc.setFontSize(16);
+    doc.text(l[1], margin, y); // REPLACED SIGNATURE WITH STUDENT NAME
+
+    doc.save(`Leave_Application_${l[2]}.pdf`);
+}
+
+    async function hDeleteLeave(idx) {
+        if(confirm("Delete this?")) { await fetch(SURL, {method:"POST", body:JSON.stringify({type:"deleteLeave", index:idx})}); viewLeaves(); }
+    }
+
+   async function markManually() {
+    if (!activeSid) return showNotify("⚠️ Create Session First", "error");
+    const selectedIdx = document.getElementById('teacherStudList').value;
+    const s = studentListCached[selectedIdx];
+    
+    const res = await fetch(SURL, {
+        method: "POST", 
+        body: JSON.stringify({
+            type: "markPresent", 
+            session: activeSid, 
+            name: s[0], 
+            roll: s[2], 
+            class: s[1], 
+            fingerprint: "MANUAL"
+        })
+    });
+    
+    const result = await res.text();
+    if (result === "SUCCESS") {
+        showNotify("✅ Marked " + s[0], "success");
+        loadDashboard();
+    } else {
+        showNotify(result === "ALREADY_MARKED" ? "⚠️ Already Present" : "❌ Error", "error");
+    }
+}
+
+    async function submitLeave() {
+        const mode = document.getElementById('lMode').value;
+        const d = (mode === 'single' ? document.getElementById('lDateS').value : `${document.getElementById('lDateF').value} to ${document.getElementById('lDateT').value}`);
+        const data = { type: "submitLeave", name: document.getElementById('lName').value, roll: document.getElementById('lRoll').value, class: document.getElementById('lClass').value, address: document.getElementById('lAddress').value, phone: document.getElementById('lPhone').value, reason: document.getElementById('lReason').value, dates: d };
+        const res = await fetch(SURL, {method:"POST", body:JSON.stringify(data)});
+        if(await res.text()==="SUCCESS") { showNotify("Submitted!", "success"); showView('mainView'); }
+    }
+
+    async function downloadCSV(type) {
+    showNotify("⏳ Generating " + (type === 'today' ? "Daily" : "Yearly") + " Report...", "default");
+    
+    try {
+        const res = await fetch(`${SURL}?action=downloadReport&type=${type}`);
+        const data = await res.json();
+        
+        if (!data || data.length <= 1) {
+            return showNotify("⚠️ No records found to download", "error");
+        }
+
+        // Convert JSON array to CSV string
+        let csvContent = "data:text/csv;charset=utf-8," + data.map(row => row.join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        
+        // Set specific filename based on type
+        const fileName = type === 'today' ? `Daily_Attendance_${new Date().toLocaleDateString()}.csv` : `Yearly_Consolidated_Report.csv`;
+        link.setAttribute("download", fileName);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showNotify("✅ " + type.toUpperCase() + " Report Downloaded!", "success");
+    } catch (e) {
+        showNotify("❌ Server Error while downloading", "error");
+    }
+}
+
+    async function fetchHistory() {
+    const roll = document.getElementById('hRoll').value;
+    if(!roll) return showNotify("⚠️ Enter Roll No", "error");
+    
+    const resultDiv = document.getElementById('hResult');
+    resultDiv.innerHTML = "<p style='color:var(--primary);'>⌛ Loading stats...</p>";
+
+    try {
+        const res = await fetch(`${SURL}?action=getStudentHistory&roll=${roll}`);
+        const d = await res.json();
+        
+        if (d.history.length === 0) {
+            resultDiv.innerHTML = `<p style="color:#ccc; margin-top:10px;">No sessions found for ${d.monthName}.</p>`;
+            return;
+        }
+
+        // Professional Stats Card
+        let html = `
+            <div class="animate" style="background:rgba(0, 198, 255, 0.1); border:1px solid var(--primary); padding:20px; border-radius:20px; margin:15px 0; text-align:center; box-shadow: 0 0 15px rgba(0, 198, 255, 0.25);">
+                <b style="color:var(--primary); font-size:12px; text-transform:uppercase;">${d.monthName} Summary</b><br>
+                <span style="font-size:42px; font-weight:900; color:var(--success); text-shadow: 0 0 10px var(--success);">${d.stats.prc}%</span><br>
+                <div style="display:flex; justify-content:space-around; margin-top:10px; font-size:13px; color:#fff; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                    <span>✅ Present: ${d.stats.p}</span>
+                    <span>❌ Absent: ${d.stats.total - d.stats.p}</span>
+                </div>
+            </div>
+            <h4 style="text-align:left; color:var(--primary); margin:15px 0 10px 0; font-size:14px;">📅 Attendance Log:</h4>
+        `;
+        
+        html += d.history.map(x => `
+            <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px;">
+                <span style="color:#eee;">${x.date}</span>
+                <span style="font-weight:bold;">${x.status}</span>
+            </div>
+        `).join('');
+        
+        resultDiv.innerHTML = html;
+    } catch (e) {
+        showNotify("❌ Error loading history", "error");
+        resultDiv.innerHTML = "";
+    }
+}
+
+    let globalAnalyticsData = []; // Store data for searching
+
+async function viewAnalytics() {
+    openModal('analyticsModal');
+    const container = document.getElementById('anaResult');
+    container.innerHTML = "<p style='color:var(--primary);'>⌛ Calculating overall statistics...</p>";
+    
+    try {
+        const res = await fetch(`${SURL}?action=getAnalytics`);
+        const data = await res.json();
+        
+        if (!data || data.length === 0) {
+            container.innerHTML = "<p style='color:#ccc;'>No student records found in the sheet.</p>";
+            return;
+        }
+
+        globalAnalyticsData = data; // Save for search filtering
+        renderAnalytics(globalAnalyticsData);
+    } catch (e) {
+        container.innerHTML = "<p style='color:var(--danger);'>❌ Failed to load. Check your internet or Sheet data.</p>";
+        showNotify("Server Error", "error");
+    }
+}
+
+// Function to draw the cards and progress bars
+function renderAnalytics(data) {
+    const container = document.getElementById('anaResult');
+    
+    container.innerHTML = data.map(s => {
+        // Neon color logic (Red for low attendance, Green for good)
+        const color = s.percent < 75 ? 'var(--danger)' : 'var(--success)';
+        
+        return `
+            <div class="animate" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; margin-bottom:12px; border-left:5px solid ${color}; text-align:left;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <b style="font-size:15px; color:#fff;">${s.name}</b>
+                    <span style="font-size:12px; opacity:0.6;">Roll: ${s.roll}</span>
+                </div>
+                <div style="margin:8px 0; font-size:13px; color:#eee;">
+                    Attendance: <b style="color:${color}">${s.percent}%</b> (${s.count}/${s.total} Days)
+                </div>
+                <!-- Progress Bar -->
+                <div style="width:100%; height:6px; background:#222; border-radius:10px; overflow:hidden;">
+                    <div style="width:${s.percent}%; height:100%; background:${color}; box-shadow:0 0 8px ${color}; transition: width 0.5s;"></div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Search function to filter names and rolls
+function filterAnalytics() {
+    const query = document.getElementById('anaSearch').value.toLowerCase();
+    const filtered = globalAnalyticsData.filter(s => 
+        s.name.toLowerCase().includes(query) || 
+        s.roll.toString().includes(query)
+    );
+    renderAnalytics(filtered);
+}
+
+// --- AUTO-LOAD DATA ON STARTUP ---
+let studentListCached = null;
+
+async function prefetchData() {
+    console.log("?? Pre-fetching data for speed...");
+    try {
+        // Load students and save in a variable immediately
+        const res = await fetch(`${SURL}?action=getStudents`);
+        studentListCached = await res.json();
+        
+        // Fill dropdowns early
+        const h = studentListCached.map((s,i)=>`<option value="${i}">${s[0]} (${s[2]})</option>`).join('');
+        document.getElementById('teacherStudList').innerHTML = h;
+        document.getElementById('studSelect').innerHTML = h;
+        
+        console.log("&#x1F680; Data Ready.");
+    } catch (e) {
+        console.log("Pre-fetch failed, will retry on click.");
+    }
+}
+
 </script>
 </body>
 </html>
