@@ -263,26 +263,27 @@
 
 
 <!-- STUDENT PORTAL -->
+<!-- STUDENT PORTAL -->
 <div class="card hidden animate" id="studentView">
-    <h3>Student Portal</h3>
+    <h3>🎓 Student Portal</h3>
     
-    <!-- FIRST PAGE (SID & Code) -->
+    <!-- PAGE 1: INPUTS -->
     <div id="sInputs">
         <input id="isid" placeholder="Session ID">
         <input id="icode" placeholder="Verify Code">
-        <button class="btn-blue" onclick="requestGPS()">Verify Range & Codes</button>
+        <button class="btn-blue" onclick="requestGPS()">Verify & Proceed</button>
     </div>
 
-    <!-- DISTANCE MESSAGE -->
-    <div id="distBox" class="hidden"></div>
+    <!-- STATUS BOX -->
+    <div id="distBox" class="hidden" style="padding:15px; border-radius:15px; background:rgba(255,255,255,0.1); margin:10px 0; font-size:13px;"></div>
 
-    <!-- SECOND PAGE (Dropdown - starts hidden) -->
+    <!-- PAGE 2: NAME SELECTION (Starts hidden) -->
     <div id="sMark" class="hidden">
         <select id="studSelect"></select>
         <button class="btn-green" onclick="submitFinal()">Confirm Attendance</button>
     </div>
 
-    <button class="btn-sec" onclick="showView('mainView')">Back</button>
+    <button class="btn-sec" onclick="showView('mainView')">Back Home</button>
 </div>
 
 <!-- LEAVE FORM (Formal Long Content) -->
@@ -358,345 +359,167 @@
 <div id="loginView" class="card hidden animate"><h3>Teacher Access</h3><input type="password" id="admPass" placeholder="Password"><button class="btn-blue" onclick="doLogin()">Login</button><button class="btn-sec" onclick="showView('mainView')">Back</button></div>
 
 <script>
-    const SURL = "https://script.google.com/macros/s/AKfycbwGzw-kDqtKz2jPz18TVxkf91cEAZnnmaLErPgnylch-MbMNw4vb3PDLqcoWet085vw/exec"; 
-    let students, activeSid, dashData;
-	
+    const SURL = "https://script.google.com/macros/s/AKfycbx0jK81i_KGZPPLxLhfVPEbSFg4QIY9cNiGpLDiDe-1xltDSp5I3FiRIBsIdoOKVXcj/exec"; 
+    let studentListCached = [], activeSid, dashData, globalAnalyticsData = [], allLeavesData = [];
 
     function showNotify(m, t) { 
-    const b = document.getElementById('toast'); 
-    b.innerHTML = m; // Changed from innerText to innerHTML
-    b.style.background = t==='error'?'#ff4b2b':'#fff'; 
-    b.style.display = 'block'; 
-    setTimeout(()=>b.style.display='none', 3000); 
-}
-    function showView(id) { 
-    document.querySelectorAll('.card').forEach(c => c.classList.add('hidden')); 
-    document.getElementById(id).classList.remove('hidden'); 
-    
-    // Auto-load data for teacher
-    if (id === 'teacherView') { loadStudents(); loadDashboard(); } 
-    
-    // Check lock for student portal
-    if (id === 'studentView' && isPortalLocked()) {
-        document.getElementById('sInputs').innerHTML = "<h3 style='color:var(--success);'>&#x1F512; Attendance Completed</h3><p style='font-size:13px; opacity:0.7;'>You have already marked your attendance for today. Access is restricted until the next session.</p>";
+        const b = document.getElementById('toast'); 
+        b.innerHTML = m; 
+        b.style.background = t==='error'?'#ff4b2b':'#fff'; 
+        b.style.display = 'block'; 
+        setTimeout(()=>b.style.display='none', 3000); 
     }
-}
+    
+    function showView(id) { 
+        document.querySelectorAll('.card').forEach(c=>c.classList.add('hidden')); 
+        document.getElementById(id).classList.remove('hidden'); 
+        if(id==='teacherView') { loadStudents(); loadDashboard(); }
+        if(id==='studentView' && isPortalLocked()){
+            document.getElementById('sInputs').innerHTML = "<h3>&#x1F512; Access Locked</h3><p style='font-size:13px; opacity:0.7;'>Attendance already marked today. Access is restricted for security.</p>";
+            document.getElementById('distBox').classList.add('hidden');
+        }
+    }
+
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function isPortalLocked() { return localStorage.getItem("att_marked_lock") === new Date().toLocaleDateString(); }
 
-    async function doLogin() {
-    const btn = event.target;
-    const originalText = btn.innerHTML; // Changed to innerHTML
-    btn.innerHTML = "&#x231B; Authenticating..."; // Now this will show the emoji ⌛
-    
-    const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"login", password:document.getElementById('admPass').value})});
-    if(await res.text()==="SUCCESS") {
-        showView('teacherView');
-    } else {
-        showNotify("&#x274C; Invalid Password", "error"); // Added emoji here too
+    async function prefetchData() {
+        try {
+            const res = await fetch(`${SURL}?action=getStudents`);
+            studentListCached = await res.json();
+            const h = studentListCached.map((s,i)=>`<option value="${i}">${s[0]} (${s[2]})</option>`).join('');
+            document.getElementById('teacherStudList').innerHTML = h; document.getElementById('studSelect').innerHTML = h;
+        } catch (e) { console.log("Prefetch failed"); }
     }
-    btn.innerHTML = originalText; // Reset to original
-}
-
     prefetchData();
 
-// Modify your existing loadStudents function to use the cache
-async function loadStudents() {
-    if (studentListCached) {
-        const h = studentListCached.map((s,i)=>`<option value="${i}">${s[0]} (${s[2]})</option>`).join('');
-        document.getElementById('teacherStudList').innerHTML = h;
-        document.getElementById('studSelect').innerHTML = h;
-    } else {
-        await prefetchData();
+    async function doLogin() {
+        const btn = event.target; btn.innerHTML = "&#x231B; Authenticating...";
+        const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"login", password:document.getElementById('admPass').value})});
+        if(await res.text()==="SUCCESS") showView('teacherView'); else showNotify("&#x274C; Denied", "error");
+        btn.innerHTML = "Login";
     }
-}
 
-    async function hCreateSession() {
-    activeSid = "SESS-" + Math.floor(100000 + Math.random()*900000);
-    const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"createSession", session:activeSid})});
-    const txt = await res.text();
-    if(txt.includes("EXISTS")) activeSid = txt.split("|")[1];
-    
-    // Only show text ID, QR removed
-    const sD = document.getElementById('sDisplay');
-    sD.innerText = "SESSION ID: " + activeSid;
-    sD.classList.remove('hidden');
-    document.getElementById('sQR').innerHTML = ""; // Ensure QR div is empty
-    showNotify("&#x2705; Session ID Ready");
-}
+    async function loadStudents() { if(studentListCached.length === 0) await prefetchData(); }
 
-    async function hCreateCode() {
-    if(!activeSid) return showNotify("?? Create Session First", "error");
-    let c = Math.floor(1000 + Math.random()*8999).toString();
-    const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"updateCode", session:activeSid, code:c})});
-    const txt = await res.text();
-    if(txt.includes("CODE_EXISTS")) c = txt.split("|")[1];
-    
-    // Only show text Code, QR removed
-    const cD = document.getElementById('cDisplay');
-    cD.innerText = "VERIFY CODE: " + c;
-    cD.classList.remove('hidden');
-    showNotify("&#x1F511; Code Generated");
-}
-async function resetData(target) {
-    if(!confirm("&#x26A0; Are you sure? This will PERMANENTLY DELETE data!")) return;
-    showNotify("? Processing...");
-    const res = await fetch(SURL, { method: "POST", body: JSON.stringify({type: target === 'att' ? "resetAttendance" : "resetSessions"}) });
-    if(await res.text() === "SUCCESS") { showNotify("&#x1F5D1; Data Wiped", "success"); loadDashboard(); }
-}
+    // --- STUDENT PORTAL: GPS (200m Range) ---
+    async function requestGPS() {
+        if (isPortalLocked()) return showNotify("&#x26A0; Portal Locked", "error");
+        const box = document.getElementById('distBox');
+        const sid = document.getElementById('isid').value; const code = document.getElementById('icode').value;
+        if(!sid || !code) return showNotify("&#x26A0; Enter Details", "error");
+        
+        box.classList.remove('hidden'); 
+        box.innerHTML = "&#x1F4CD; Tracing satellite location... please wait.";
 
-    function toggleDateMode() {
-        const mode = document.getElementById('lMode').value;
-        document.getElementById('sDateWrap').style.display = (mode === 'single' ? 'block' : 'none');
-        document.getElementById('rDateWrap').classList.toggle('hidden', mode === 'single');
-    }
-	
-	// --- 1. LOCK CHECK LOGIC ---
-function isPortalLocked() {
-    const lockDate = localStorage.getItem("att_marked_lock");
-    const today = new Date().toLocaleDateString();
-    return lockDate === today;
-}
-
-// --- 2. UPDATED REQUEST GPS (Triggers Name List) ---
-async function requestGPS() {
-    const box = document.getElementById('distBox');
-    const sInputs = document.getElementById('sInputs');
-    const sMark = document.getElementById('sMark'); // Ensure this matches your HTML ID
-
-    // 1. Show Tracking Message
-    box.classList.remove('hidden');
-    box.innerHTML = "&#x1F4CD; Tracing location... please wait.";
-
-    navigator.geolocation.getCurrentPosition(async p => {
-        try {
-            // 2. Check Geofence Range
-            const res = await fetch(`${SURL}?action=checkLocation&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
-            const loc = await res.json();
-
-            if (loc.status === "IN_RANGE") {
-                box.innerHTML = `&#x2705; Range: ${loc.distance}km (Success)`;
-
-                // 3. Check Session ID & Code
-                const inputSID = document.getElementById('isid').value;
-                const inputCode = document.getElementById('icode').value;
-
-                if (!inputSID || !inputCode) {
-                    showNotify("⚠️ Enter Session ID & Code", "error");
-                    return;
-                }
-
-                const sres = await fetch(`${SURL}?action=getSessions`);
-                const sessions = await sres.json();
-
-                // 4. Verify if codes exist for today
-                const match = sessions.find(x => 
-                    (x.session === inputSID && x.code === inputCode) || 
-                    (x[0] === inputSID && x[1] === inputCode) // Fallback for different GS formats
-                );
-
-                if (match) {
-                    // 5. SUCCESS: HIDE INPUTS & SHOW NAME SELECTION
-                    await loadStudents(); // Fetch names
-                    sInputs.classList.add('hidden'); // Hide SID/Code fields
-                    sMark.classList.remove('hidden'); // Show Name List & Confirm Button
-                    showNotify("✅ Codes Verified!", "success");
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            try {
+                const locRes = await fetch(`${SURL}?action=checkLocation&lat=${position.coords.latitude}&lon=${position.coords.longitude}`);
+                const locData = await locRes.json();
+                if (locData.status === "IN_RANGE") {
+                    box.innerHTML = `&#x2705; Range: ${locData.distance}km (Verified)`;
+                    const sres = await fetch(`${SURL}?action=getSessions&t=${Date.now()}`);
+                    const sess = await sres.json();
+                    const match = sess.find(x => (x.session === sid && x.code === code) || (x[1] === sid && x[2] === code));
+                    if (match) {
+                        await loadStudents();
+                        document.getElementById('sInputs').classList.add('hidden');
+                        document.getElementById('sMark').classList.remove('hidden');
+                        showNotify("&#x2705; Verified", "success");
+                    } else showNotify("&#x274C; Invalid Codes", "error");
                 } else {
-                    showNotify("❌ Invalid ID or Verify Code", "error");
+                    box.innerHTML = `&#x274C; Range: ${locData.distance}km (Outside 200m)`;
+                    showNotify("&#x26A0; Too far from college", "error");
                 }
-            } else {
-                box.innerHTML = `&#x274C; Range: ${loc.distance}km (Out of Range)`;
-                showNotify("⚠️ You are not at college!", "error");
-            }
-        } catch (err) {
-            showNotify("❌ Server Connection Error", "error");
-        }
-    }, () => {
-        showNotify("❌ Please enable GPS/Location", "error");
-    });
-}
-
-// --- 3. UPDATED SUBMIT FINAL (Saves the Lock) ---
-async function submitFinal() {
-    const selectedIdx = document.getElementById('studSelect').value;
-    const s = studentListCached[selectedIdx];
-    
-    showNotify("⌛ Submitting...");
-    
-    const res = await fetch(SURL, {
-        method: "POST", 
-        body: JSON.stringify({
-            type: "markPresent", 
-            session: document.getElementById('isid').value, 
-            name: s[0], 
-            roll: s[2], 
-            class: s[1], 
-            fingerprint: navigator.userAgent
-        })
-    });
-    
-    const result = await res.text();
-    if (result === "SUCCESS") {
-        // SAVE THE LOCK ON THE PHONE
-        localStorage.setItem("att_marked_lock", new Date().toLocaleDateString());
-        
-        document.getElementById('sMark').innerHTML = "<h3>&#x2705; Attendance Success!</h3><p>Your portal is now locked until tomorrow.</p>";
-        showNotify("✅ Success!", "success");
-    } else {
-        showNotify(result === "ALREADY_MARKED" ? "⚠️ Already marked!" : "❌ Error", "error");
+            } catch (e) { showNotify("&#x274C; Server Error", "error"); }
+        }, () => showNotify("&#x274C; GPS Denied", "error"), { enableHighAccuracy: true });
     }
-}
-
-    const box = document.getElementById('distBox'); 
-    box.classList.remove('hidden'); 
-    box.innerHTML = "&#x1F4CD; Tracing location and calculating distance... Please wait.";
-
-    navigator.geolocation.getCurrentPosition(async p => {
-        const res = await fetch(`${SURL}?action=checkLocation&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
-        const loc = await res.json();
-        
-        if (loc.status === "IN_RANGE") {
-            box.innerHTML = `&#x2705; Range: ${loc.distance}km (Success)`;
-            
-            // Verify Codes
-            const sID = document.getElementById('isid').value;
-            const sCode = document.getElementById('icode').value;
-            const sres = await fetch(`${SURL}?action=getSessions`);
-            const sessions = await sres.json();
-
-            // Check if codes match
-            if (sessions.find(x => x.session === sID && x.code === sCode)) {
-                // SUCCESS: NOW SHOW NAMES
-                await loadStudents(); // Ensure names are loaded into the dropdown
-                document.getElementById('sInputs').classList.add('hidden');
-                document.getElementById('sMark').classList.remove('hidden'); // Show the dropdown and confirm button
-                showNotify("✅ Identity Verification Required", "success");
-            } else {
-                showNotify("❌ Invalid Session ID or Verify Code", "error");
-            }
-        } else {
-            box.innerHTML = `&#x274C; Range: ${loc.distance}km (Out of Range)`;
-            showNotify("⚠️ You are not within college boundaries", "error");
-        }
-    }, () => {
-        showNotify("❌ GPS Access Denied", "error");
-    });
-}
 
     async function submitFinal() {
-    const selectedIdx = document.getElementById('studSelect').value;
-    const s = studentListCached[selectedIdx];
-    
-    showNotify("⌛ Submitting...");
-    
-    const res = await fetch(SURL, {
-        method: "POST", 
-        body: JSON.stringify({
-            type: "markPresent", 
-            session: document.getElementById('isid').value, 
-            name: s[0], 
-            roll: s[2], 
-            class: s[1], 
-            fingerprint: navigator.userAgent
-        })
-    });
-    
-    const result = await res.text();
-    if (result === "SUCCESS") {
-        // SAVE THE LOCK ON THE PHONE
-        localStorage.setItem("att_marked_lock", new Date().toLocaleDateString());
-        
-        document.getElementById('sMark').innerHTML = "<h3>&#x2705; Attendance Success!</h3><p>Your portal is now locked until tomorrow.</p>";
-        showNotify("✅ Success!", "success");
-    } else {
-        showNotify(result === "ALREADY_MARKED" ? "⚠️ Already marked!" : "❌ Error", "error");
+        const s = studentListCached[document.getElementById('studSelect').value];
+        const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"markPresent", session:document.getElementById('isid').value, name:s[0], roll:s[2], class:s[1], fingerprint: navigator.userAgent})});
+        if(await res.text() === "SUCCESS") {
+            localStorage.setItem("att_marked_lock", new Date().toLocaleDateString());
+            document.getElementById('sMark').innerHTML = "<h3>&#x2705; Attendance Success!</h3>";
+        } else showNotify("Already marked!", "error");
     }
-}
 
-    async function loadDashboard() {
-    const res = await fetch(`${SURL}?action=getDashboard`);
-    dashData = await res.json();
-    document.getElementById('dashList').innerHTML = dashData.map((i, idx)=>`
-        <div class="session-item">
-            <small>${i.date}</small><br>
-            <b>&#x1F194; ${i.sid} | &#x1F511; ${i.code}</b><br>
-            &#x2705; Present: ${i.present} | <span style="color:var(--danger); cursor:pointer; font-weight:bold;" onclick="showAbsents(${idx})">&#x274C; Absent: ${i.absent}</span>
-        </div>`).join('');
-}
+    // --- ANALYTICS STYLE: NEON PROGRESS BARS ---
+    async function viewAnalytics() {
+        openModal('analyticsModal');
+        document.getElementById('anaResult').innerHTML = "<p>&#x231B; Loading Analytics...</p>";
+        const res = await fetch(`${SURL}?action=getAnalytics`);
+        globalAnalyticsData = await res.json();
+        renderAnalytics(globalAnalyticsData);
+    }
 
-function showAbsents(idx) {
-    const names = dashData[idx].absentNames.map(n => "?? " + n).join("<br>") || "No absents!";
-    document.getElementById('absentList').innerHTML = `<div style="color:white; padding:10px;">${names}</div>`;
-    openModal('absentModal');
-}
+    function renderAnalytics(data) {
+        document.getElementById('anaResult').innerHTML = data.map(s => {
+            const color = s.percent < 75 ? 'var(--danger)' : 'var(--success)';
+            return `<div class="animate" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; margin-bottom:12px; border-left:5px solid ${color}; text-align:left;">
+                <div style="display:flex; justify-content:space-between;"><b>${s.name}</b><small>Roll: ${s.roll}</small></div>
+                <div style="font-size:13px; margin:5px 0;">Attendance: <b>${s.percent}%</b> (${s.count}/${s.total})</div>
+                <div style="width:100%; height:6px; background:#222; border-radius:10px; overflow:hidden;">
+                    <div style="width:${s.percent}%; height:100%; background:${color}; box-shadow:0 0 10px ${color};"></div>
+                </div>
+            </div>`;
+        }).join('');
+    }
 
-    function showAbsents(idx) {
-        document.getElementById('absentList').innerHTML = dashData[idx].absentNames.map(n => "&#x1F464; " + n).join("<br>") || "No absents!";
-        openModal('absentModal');
+    // --- STUDENT HISTORY STYLE: MONTHLY SUMMARY CARD ---
+    async function fetchHistory() {
+        const r = document.getElementById('hRoll').value;
+        const res = await fetch(`${SURL}?action=getStudentHistory&roll=${r}`);
+        const d = await res.json();
+        let h = `<div class="animate" style="background:rgba(0,198,255,0.1); border:1px solid var(--primary); padding:15px; border-radius:20px; margin-bottom:15px; text-align:center;">
+            <b style="font-size:12px; text-transform:uppercase;">${d.monthName} Summary</b><br>
+            <span style="font-size:36px; font-weight:900; color:var(--success);">${d.stats.prc}%</span><br>
+            <small>Present: ${d.stats.p} | Total: ${d.stats.total}</small>
+        </div>`;
+        h += d.history.map(x=>`<div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding:10px; font-size:14px;"><span>${x.date}</span><b>${x.status}</b></div>`).join('');
+        document.getElementById('hResult').innerHTML = h;
+    }
+
+    // --- LEAVE SYSTEM: PROFESSIONAL TEXT-BASED PDF ---
+    async function viewLeaves() {
+        openModal('leaveModal');
+        document.getElementById('leaveResult').innerHTML = "<p>&#x1F4CB; Fetching records...</p>";
+        const res = await fetch(`${SURL}?action=getLeaves`);
+        allLeavesData = await res.json(); allLeavesData.shift();
+        renderLeaves(allLeavesData);
+    }
+
+    function renderLeaves(data) {
+        document.getElementById('leaveResult').innerHTML = data.map((l,i)=>`
+            <div class="animate" style="background:#fff; color:#000 !important; padding:15px; border-radius:10px; margin-bottom:15px; text-align:left; border:2px solid #000;">
+                <b>Leave Slip: ${l[1]}</b><br><small>Roll: ${l[2]} | Dates: ${l[7]}</small>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button onclick="downloadLetterPDF(${i})" style="background:#000; color:#fff; width:auto; padding:5px 12px; font-size:11px;">&#x1F4E5; Download PDF</button>
+                    <button onclick="hDeleteLeave(${i})" style="background:red; color:#fff; width:auto; padding:5px 12px; font-size:11px;">&#x1F5D1; Delete</button>
+                </div>
+            </div>`).join('');
     }
 	
-	let globalLeaveData = []; // Store for searching
-
-    async function viewLeaves() {
-    openModal('leaveModal');
-    document.getElementById('leaveResult').innerHTML = "<p>&#x1F4CB; Fetching leave records...</p>";
+	async function hDeleteLeave(idx) {
+    if(!confirm("🗑️ Are you sure you want to delete this application permanently?")) return;
     
+    showNotify("⌛ Deleting...", "default");
     try {
-        const res = await fetch(`${SURL}?action=getLeaves`);
-        const data = await res.json();
-        data.shift(); // Remove headers
-        globalLeaveData = data;
-        renderLeaves(globalLeaveData);
-    } catch (e) {
-        showNotify("Error loading leaves", "error");
-    }
+        const res = await fetch(SURL, {
+            method: "POST", 
+            body: JSON.stringify({type: "deleteLeave", index: idx})
+        });
+        if(await res.text() === "SUCCESS") {
+            showNotify("✅ Deleted Successfully", "success");
+            viewLeaves(); // Refresh the list
+        }
+    } catch (e) { showNotify("❌ Delete Failed", "error"); }
 }
 
-// Function to render the leave "slips" in the list
-function renderLeaves(data) {
-    const container = document.getElementById('leaveResult');
-    document.getElementById('leaveCount').innerText = data.length + " Slips";
-
-    if (data.length === 0) {
-        container.innerHTML = "<p style='color:white; opacity:0.6;'>No leave applications found.</p>";
-        return;
-    }
-
-    container.innerHTML = data.map((l, i) => `
-        <div class="animate" style="background:#fff; color:#000 !important; padding:20px; border-radius:15px; margin-bottom:15px; border: 2px solid #000; text-align:left; position:relative;">
-            <div style="border-bottom:1px solid #ddd; padding-bottom:8px; margin-bottom:10px; font-weight:bold; font-size:12px; color:#555;">
-                &#x1F4CB; ADARSH BCA, HADADAD - LEAVE SLIP
-            </div>
-            
-            <div style="font-size:14px; line-height:1.6;">
-                <b>Student:</b> ${l[1]} (Roll: ${l[2]})<br>
-                <b>Class:</b> ${l[3]} | <b>Contact:</b> ${l[5]}<br>
-                <b>Reason:</b> ${l[6]}<br>
-                <b>Dates:</b> <span style="background:#fff9c4; padding:2px 5px; border-radius:4px;">${l[7]}</span>
-            </div>
-
-            <div style="margin-top:15px; display:flex; gap:10px;">
-                <button onclick="generateTextPDF(${i})" style="width:auto; padding:8px 15px; font-size:12px; background:#000; color:#fff; border-radius:8px;">&#x1F4E5; Download A4 PDF</button>
-                <button onclick="hDeleteLeave(${i})" style="width:auto; padding:8px 15px; font-size:12px; background:#ff4b2b; color:#fff; border-radius:8px; border:none;"> &#x1F5D1; Delete</button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Filter Function
-function filterLeaves() {
-    const query = document.getElementById('leaveSearch').value.toLowerCase();
-    const filtered = globalLeaveData.filter(l => 
-        l[1].toLowerCase().includes(query) || 
-        l[2].toString().includes(query)
-    );
-    renderLeaves(filtered);
-}
-
-// THE TEXT-BASED A4 PDF SOLUTION
-function generateTextPDF(index) {
-    const l = globalLeaveData[index];
-    const { jsPDF } = window.jspdf;
+   function downloadLetterPDF(i) {
+    const l = allLeavesData[i]; 
+    const { jsPDF } = window.jspdf; 
     const doc = new jsPDF('p', 'mm', 'a4');
 
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -710,10 +533,10 @@ function generateTextPDF(index) {
     doc.text("ADARSH BCA COLLEGE, HADADAD", pageWidth / 2, y, { align: "center" });
     y += 10;
     doc.setFontSize(12);
-    doc.text("OFFICIAL LEAVE APPLICATION", pageWidth / 2, y, { align: "center" });
+    doc.text("OFFICIAL LEAVE APPLICATION FORM", pageWidth / 2, y, { align: "center" });
 
     y += 20;
-    // Formal Addressing (Left Aligned)
+    // Address (Left Aligned)
     doc.setFont("times", "normal");
     doc.setFontSize(14);
     doc.text("To,", margin, y);
@@ -731,89 +554,25 @@ function generateTextPDF(index) {
     doc.text("Respected Madam,", margin, y);
     
     y += 10;
-    // The formal long content
+    // THE EXACT LONG MEANINGFUL CONTENT
     const letterBody = `With profound respect and humble submission, I ${l[1]}, a student of Class ${l[3]} bearing Roll No: ${l[2]}, beg to bring to your kind notice that I am unable to attend the college academic sessions due to ${l[6]}.
 
 This situation has made it unavoidable for me to remain absent. Therefore, I sincerely request you to kindly grant me leave for the following period: ${l[7]}.
 
-I fully understand the importance of my attendance and I assure you that I will be diligent in catching up with the missed syllabus and practical assignments immediately upon my return to college. I shall be highly obliged for your consideration.`;
+I fully understand the importance of my attendance and I assure you that I will be diligent in catching up with the missed syllabus, practical assignments, and lecture notes immediately upon my return to college. I shall be highly obliged for your consideration.`;
 
     const splitText = doc.splitTextToSize(letterBody, contentWidth);
     doc.text(splitText, margin, y);
 
-    y += (splitText.length * 7) + 10;
-    // Contact details
-    doc.setFont("times", "bold");
-    doc.text("Student Details:", margin, y);
-    y += 8;
-    doc.setFont("times", "normal");
-    doc.text(`Residential Address: ${l[4]}`, margin, y);
-    y += 7;
-    doc.text(`Mobile Number: ${l[5]}`, margin, y);
-
-    y += 20;
-    doc.text("Yours obediently,", margin, y);
-    y += 10;
-    doc.setFont("times", "bold");
-    doc.setFontSize(16);
-    doc.text(l[1], margin, y); // Student Name Signature
-
-    doc.save(`Leave_Letter_${l[2]}.pdf`);
-}
-
-    function downloadLetterPDF(i) {
-    const l = allLeavesData[i]; // Ensure your data is stored in this variable
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4'); // Set A4 Size
-
-    const margin = 20; // 20mm Equal Margins (Left & Right)
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const contentWidth = pageWidth - (margin * 2);
-    let y = 30; // Top Margin
-
-    // Header - Centered
-    doc.setFont("times", "bold");
-    doc.setFontSize(20);
-    doc.text("ADARSH BCA COLLEGE, HADADAD", pageWidth / 2, y, { align: "center" });
-    y += 10;
-    doc.setFontSize(12);
-    doc.text("OFFICIAL LEAVE APPLICATION", pageWidth / 2, y, { align: "center" });
-
-    y += 20;
-    // Formal Addressing - Left Aligned
-    doc.setFont("times", "normal");
-    doc.setFontSize(14);
-    doc.text("To,", margin, y);
-    y += 8;
-    doc.setFont("times", "bold");
-    doc.text("The Class Coordinator (Krishna Mam),", margin, y);
-    y += 7;
-    doc.text("Adarsh BCA College, Hadadad.", margin, y);
-
-    y += 15;
-    doc.text("Subject: Formal Request for Grant of Leave of Absence", margin, y);
-
-    y += 15;
-    doc.setFont("times", "normal");
-    doc.text("Respected Madam,", margin, y);
-    
-    y += 10;
-    // Long meaningful content
-    const bodyText = `With profound respect, I ${l[1]}, a student of Class ${l[3]} bearing Roll No: ${l[2]}, beg to bring to your kind notice that I am unable to attend college due to ${l[6]}.
-
-This situation is unavoidable, therefore I request you to kindly grant me leave for the period: ${l[7]}.
-
-I assure you that I will be diligent in catching up with the missed syllabus immediately upon my return. I shall be highly obliged for your consideration.`;
-
-    // Automatic Text Wrapping for A4 Width
-    const splitText = doc.splitTextToSize(bodyText, contentWidth);
-    doc.text(splitText, margin, y);
-
     y += (splitText.length * 7) + 15;
     // Contact Info
+    doc.setFont("times", "bold");
+    doc.text("Student Contact Details:", margin, y);
+    y += 8;
+    doc.setFont("times", "normal");
     doc.text(`Address: ${l[4]}`, margin, y);
     y += 7;
-    doc.text(`Mobile: ${l[5]}`, margin, y);
+    doc.text(`Mobile Number: ${l[5]}`, margin, y);
 
     y += 20;
     doc.text("Yours obediently,", margin, y);
@@ -825,202 +584,58 @@ I assure you that I will be diligent in catching up with the missed syllabus imm
     doc.save(`Leave_Application_${l[2]}.pdf`);
 }
 
-    async function hDeleteLeave(idx) {
-        if(confirm("Delete this?")) { await fetch(SURL, {method:"POST", body:JSON.stringify({type:"deleteLeave", index:idx})}); viewLeaves(); }
+    // --- OTHER TEACHER LOGIC ---
+    async function loadDashboard() {
+        const res = await fetch(`${SURL}?action=getDashboard`);
+        dashData = await res.json();
+        document.getElementById('dashList').innerHTML = dashData.map((i, idx)=>`<div class="session-item"><small>${i.date}</small><br><b>&#x1F194; ${i.sid} | &#x1F511; ${i.code}</b><br>&#x2705; P: ${i.present} | <span class="absent-btn" onclick="showAbsents(${idx})">&#x274C; A: ${i.absent}</span></div>`).join('');
     }
 
-   async function markManually() {
-    if (!activeSid) return showNotify("⚠️ Create Session First", "error");
-    const selectedIdx = document.getElementById('teacherStudList').value;
-    const s = studentListCached[selectedIdx];
-    
-    const res = await fetch(SURL, {
-        method: "POST", 
-        body: JSON.stringify({
-            type: "markPresent", 
-            session: activeSid, 
-            name: s[0], 
-            roll: s[2], 
-            class: s[1], 
-            fingerprint: "MANUAL"
-        })
-    });
-    
-    const result = await res.text();
-    if (result === "SUCCESS") {
-        showNotify("✅ Marked " + s[0], "success");
-        loadDashboard();
-    } else {
-        showNotify(result === "ALREADY_MARKED" ? "⚠️ Already Present" : "❌ Error", "error");
+    function showAbsents(idx) {
+        document.getElementById('absentList').innerHTML = dashData[idx].absentNames.map(n => "&#x1F464; " + n).join("<br>") || "None";
+        openModal('absentModal');
     }
-}
+
+    async function hCreateSession() {
+        activeSid = "SESS-" + Math.floor(100000 + Math.random()*900000);
+        const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"createSession", session:activeSid})});
+        const txt = await res.text(); if(txt.includes("EXISTS")) activeSid = txt.split("|")[1];
+        document.getElementById('sDisplay').innerText = activeSid; document.getElementById('sDisplay').classList.remove('hidden');
+    }
+
+    async function hCreateCode() {
+        if(!activeSid) return showNotify("&#x26A0; Session First", "error");
+        let c = Math.floor(1000 + Math.random()*8999).toString();
+        const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"updateCode", session:activeSid, code:c})});
+        const txt = await res.text(); if(txt.includes("CODE_EXISTS")) c = txt.split("|")[1];
+        document.getElementById('cDisplay').innerText = c; document.getElementById('cDisplay').classList.remove('hidden');
+    }
+
+    async function resetData(t) { if(confirm("Wipe data?")) await fetch(SURL, {method:"POST", body:JSON.stringify({type: t==='att'?'resetAttendance':'resetSessions'})}); loadDashboard(); }
 
     async function submitLeave() {
-        const mode = document.getElementById('lMode').value;
-        const d = (mode === 'single' ? document.getElementById('lDateS').value : `${document.getElementById('lDateF').value} to ${document.getElementById('lDateT').value}`);
+        const d = document.getElementById('lMode').value==='single'?document.getElementById('lDateS').value:`${document.getElementById('lDateF').value} to ${document.getElementById('lDateT').value}`;
         const data = { type: "submitLeave", name: document.getElementById('lName').value, roll: document.getElementById('lRoll').value, class: document.getElementById('lClass').value, address: document.getElementById('lAddress').value, phone: document.getElementById('lPhone').value, reason: document.getElementById('lReason').value, dates: d };
-        const res = await fetch(SURL, {method:"POST", body:JSON.stringify(data)});
-        if(await res.text()==="SUCCESS") { showNotify("Submitted!", "success"); showView('mainView'); }
+        await fetch(SURL, {method:"POST", body:JSON.stringify(data)});
+        showNotify("&#x1F680; Submitted!", "success"); showView('mainView');
+    }
+
+    async function markManually() {
+        const s = studentListCached[document.getElementById('teacherStudList').value];
+        const res = await fetch(SURL, {method:"POST", body:JSON.stringify({type:"markPresent", session:activeSid, name:s[0], roll:s[2], class:s[1], fingerprint:"MANUAL"})});
+        if(await res.text()==="SUCCESS") { showNotify("&#x2705; Marked!", "success"); loadDashboard(); } else showNotify("Already marked!", "error");
     }
 
     async function downloadCSV(type) {
-    showNotify("⏳ Generating " + (type === 'today' ? "Daily" : "Yearly") + " Report...", "default");
-    
-    try {
         const res = await fetch(`${SURL}?action=downloadReport&type=${type}`);
         const data = await res.json();
-        
-        if (!data || data.length <= 1) {
-            return showNotify("⚠️ No records found to download", "error");
-        }
-
-        // Convert JSON array to CSV string
-        let csvContent = "data:text/csv;charset=utf-8," + data.map(row => row.join(",")).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        
-        // Set specific filename based on type
-        const fileName = type === 'today' ? `Daily_Attendance_${new Date().toLocaleDateString()}.csv` : `Yearly_Consolidated_Report.csv`;
-        link.setAttribute("download", fileName);
-        
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showNotify("✅ " + type.toUpperCase() + " Report Downloaded!", "success");
-    } catch (e) {
-        showNotify("❌ Server Error while downloading", "error");
+        let csv = "data:text/csv;charset=utf-8," + data.map(e => e.join(",")).join("\n");
+        const link = document.createElement("a"); link.href = encodeURI(csv); link.download = type + "_report.csv"; link.click();
     }
-}
 
-    async function fetchHistory() {
-    const roll = document.getElementById('hRoll').value;
-    if(!roll) return showNotify("⚠️ Enter Roll No", "error");
-    
-    const resultDiv = document.getElementById('hResult');
-    resultDiv.innerHTML = "<p style='color:var(--primary);'>⌛ Loading stats...</p>";
-
-    try {
-        const res = await fetch(`${SURL}?action=getStudentHistory&roll=${roll}`);
-        const d = await res.json();
-        
-        if (d.history.length === 0) {
-            resultDiv.innerHTML = `<p style="color:#ccc; margin-top:10px;">No sessions found for ${d.monthName}.</p>`;
-            return;
-        }
-
-        // Professional Stats Card
-        let html = `
-            <div class="animate" style="background:rgba(0, 198, 255, 0.1); border:1px solid var(--primary); padding:20px; border-radius:20px; margin:15px 0; text-align:center; box-shadow: 0 0 15px rgba(0, 198, 255, 0.25);">
-                <b style="color:var(--primary); font-size:12px; text-transform:uppercase;">${d.monthName} Summary</b><br>
-                <span style="font-size:42px; font-weight:900; color:var(--success); text-shadow: 0 0 10px var(--success);">${d.stats.prc}%</span><br>
-                <div style="display:flex; justify-content:space-around; margin-top:10px; font-size:13px; color:#fff; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-                    <span>✅ Present: ${d.stats.p}</span>
-                    <span>❌ Absent: ${d.stats.total - d.stats.p}</span>
-                </div>
-            </div>
-            <h4 style="text-align:left; color:var(--primary); margin:15px 0 10px 0; font-size:14px;">📅 Attendance Log:</h4>
-        `;
-        
-        html += d.history.map(x => `
-            <div style="display:flex; justify-content:space-between; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:14px;">
-                <span style="color:#eee;">${x.date}</span>
-                <span style="font-weight:bold;">${x.status}</span>
-            </div>
-        `).join('');
-        
-        resultDiv.innerHTML = html;
-    } catch (e) {
-        showNotify("❌ Error loading history", "error");
-        resultDiv.innerHTML = "";
-    }
-}
-
-    let globalAnalyticsData = []; // Store data for searching
-
-async function viewAnalytics() {
-    openModal('analyticsModal');
-    const container = document.getElementById('anaResult');
-    container.innerHTML = "<p style='color:var(--primary);'>⌛ Calculating overall statistics...</p>";
-    
-    try {
-        const res = await fetch(`${SURL}?action=getAnalytics`);
-        const data = await res.json();
-        
-        if (!data || data.length === 0) {
-            container.innerHTML = "<p style='color:#ccc;'>No student records found in the sheet.</p>";
-            return;
-        }
-
-        globalAnalyticsData = data; // Save for search filtering
-        renderAnalytics(globalAnalyticsData);
-    } catch (e) {
-        container.innerHTML = "<p style='color:var(--danger);'>❌ Failed to load. Check your internet or Sheet data.</p>";
-        showNotify("Server Error", "error");
-    }
-}
-
-// Function to draw the cards and progress bars
-function renderAnalytics(data) {
-    const container = document.getElementById('anaResult');
-    
-    container.innerHTML = data.map(s => {
-        // Neon color logic (Red for low attendance, Green for good)
-        const color = s.percent < 75 ? 'var(--danger)' : 'var(--success)';
-        
-        return `
-            <div class="animate" style="background:rgba(255,255,255,0.05); padding:15px; border-radius:15px; margin-bottom:12px; border-left:5px solid ${color}; text-align:left;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <b style="font-size:15px; color:#fff;">${s.name}</b>
-                    <span style="font-size:12px; opacity:0.6;">Roll: ${s.roll}</span>
-                </div>
-                <div style="margin:8px 0; font-size:13px; color:#eee;">
-                    Attendance: <b style="color:${color}">${s.percent}%</b> (${s.count}/${s.total} Days)
-                </div>
-                <!-- Progress Bar -->
-                <div style="width:100%; height:6px; background:#222; border-radius:10px; overflow:hidden;">
-                    <div style="width:${s.percent}%; height:100%; background:${color}; box-shadow:0 0 8px ${color}; transition: width 0.5s;"></div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-// Search function to filter names and rolls
-function filterAnalytics() {
-    const query = document.getElementById('anaSearch').value.toLowerCase();
-    const filtered = globalAnalyticsData.filter(s => 
-        s.name.toLowerCase().includes(query) || 
-        s.roll.toString().includes(query)
-    );
-    renderAnalytics(filtered);
-}
-
-// --- AUTO-LOAD DATA ON STARTUP ---
-let studentListCached = null;
-
-async function prefetchData() {
-    console.log("?? Pre-fetching data for speed...");
-    try {
-        // Load students and save in a variable immediately
-        const res = await fetch(`${SURL}?action=getStudents`);
-        studentListCached = await res.json();
-        
-        // Fill dropdowns early
-        const h = studentListCached.map((s,i)=>`<option value="${i}">${s[0]} (${s[2]})</option>`).join('');
-        document.getElementById('teacherStudList').innerHTML = h;
-        document.getElementById('studSelect').innerHTML = h;
-        
-        console.log("&#x1F680; Data Ready.");
-    } catch (e) {
-        console.log("Pre-fetch failed, will retry on click.");
-    }
-}
-if ('serviceWorker' in navigator) {
-    // Adding ?v=2 forces the browser to see it as a new file
-    navigator.serviceWorker.register('./sw.js?v=3'); 
-}
+    function toggleDateMode() { document.getElementById('sDateWrap').style.display = document.getElementById('lMode').value==='single'?'block':'none'; document.getElementById('rDateWrap').classList.toggle('hidden', document.getElementById('lMode').value==='single'); }
+    function filterAnalytics() { const q = document.getElementById('anaSearch').value.toLowerCase(); renderAnalytics(globalAnalyticsData.filter(s => s.name.toLowerCase().includes(q) || s.roll.toString().includes(q))); }
+    function filterLeaves() { const q = document.getElementById('leaveSearch').value.toLowerCase(); renderLeaves(allLeavesData.filter(l => l[1].toLowerCase().includes(q) || l[2].toString().includes(q))); }
 </script>
 </body>
 </html>
