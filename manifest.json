@@ -1,6 +1,6 @@
 {
   "short_name": "CampusVerify",
-  "name": "CampusVerify Ultra - Adarsh BCA",
+  "name": "Adarsh BCA CampusVerify Ultra",
   "icons": [
     {
       "src": "icon.png",
@@ -13,10 +13,10 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
-  "background_color": "#0b141a",
+  "start_url": "./index.html",
   "display": "standalone",
-  "scope": ".",
+  "orientation": "portrait",
   "theme_color": "#0b141a",
-  "description": "Professional Attendance System"
+  "background_color": "#0b141a",
+  "description": "Professional Geofencing Attendance System for Adarsh BCA College, Hadadad."
 }
