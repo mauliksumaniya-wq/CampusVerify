@@ -265,16 +265,23 @@
 <!-- STUDENT PORTAL -->
 <div class="card hidden animate" id="studentView">
     <h3>Student Portal</h3>
+    
+    <!-- FIRST PAGE (SID & Code) -->
     <div id="sInputs">
         <input id="isid" placeholder="Session ID">
         <input id="icode" placeholder="Verify Code">
-        <button class="btn-blue" onclick="requestGPS()">&#x1F6F0; Verify Location</button>
+        <button class="btn-blue" onclick="requestGPS()">Verify Range & Codes</button>
     </div>
-    <div id="distBox" class="hidden" style="padding:15px; border-radius:15px; background:rgba(0,198,255,0.1); border:1px solid var(--primary); margin:10px 0;"></div>
+
+    <!-- DISTANCE MESSAGE -->
+    <div id="distBox" class="hidden"></div>
+
+    <!-- SECOND PAGE (Dropdown - starts hidden) -->
     <div id="sMark" class="hidden">
         <select id="studSelect"></select>
         <button class="btn-green" onclick="submitFinal()">Confirm Attendance</button>
     </div>
+
     <button class="btn-sec" onclick="showView('mainView')">Back</button>
 </div>
 
@@ -453,46 +460,59 @@ function isPortalLocked() {
 
 // --- 2. UPDATED REQUEST GPS (Triggers Name List) ---
 async function requestGPS() {
-    // Check if already marked today before doing anything
-    if (isPortalLocked()) {
-        showNotify("⚠️ You have already marked attendance today!", "error");
-        document.getElementById('sInputs').innerHTML = "<h3 style='color:var(--success);'>✅ Daily Attendance Locked</h3><p>You have already submitted your presence for today.</p>";
-        return;
-    }
+    const box = document.getElementById('distBox');
+    const sInputs = document.getElementById('sInputs');
+    const sMark = document.getElementById('sMark'); // Ensure this matches your HTML ID
 
-    const box = document.getElementById('distBox'); 
-    box.classList.remove('hidden'); 
-    box.innerHTML = "&#x1F4CD; Tracing location and calculating distance... Please wait.";
+    // 1. Show Tracking Message
+    box.classList.remove('hidden');
+    box.innerHTML = "&#x1F4CD; Tracing location... please wait.";
 
     navigator.geolocation.getCurrentPosition(async p => {
-        const res = await fetch(`${SURL}?action=checkLocation&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
-        const loc = await res.json();
-        
-        if (loc.status === "IN_RANGE") {
-            box.innerHTML = `&#x2705; Range: ${loc.distance}km (Success)`;
-            
-            // Verify Codes
-            const sID = document.getElementById('isid').value;
-            const sCode = document.getElementById('icode').value;
-            const sres = await fetch(`${SURL}?action=getSessions`);
-            const sessions = await sres.json();
+        try {
+            // 2. Check Geofence Range
+            const res = await fetch(`${SURL}?action=checkLocation&lat=${p.coords.latitude}&lon=${p.coords.longitude}`);
+            const loc = await res.json();
 
-            // Check if codes match
-            if (sessions.find(x => x.session === sID && x.code === sCode)) {
-                // SUCCESS: NOW SHOW NAMES
-                await loadStudents(); // Ensure names are loaded into the dropdown
-                document.getElementById('sInputs').classList.add('hidden');
-                document.getElementById('sMark').classList.remove('hidden'); // Show the dropdown and confirm button
-                showNotify("✅ Identity Verification Required", "success");
+            if (loc.status === "IN_RANGE") {
+                box.innerHTML = `&#x2705; Range: ${loc.distance}km (Success)`;
+
+                // 3. Check Session ID & Code
+                const inputSID = document.getElementById('isid').value;
+                const inputCode = document.getElementById('icode').value;
+
+                if (!inputSID || !inputCode) {
+                    showNotify("⚠️ Enter Session ID & Code", "error");
+                    return;
+                }
+
+                const sres = await fetch(`${SURL}?action=getSessions`);
+                const sessions = await sres.json();
+
+                // 4. Verify if codes exist for today
+                const match = sessions.find(x => 
+                    (x.session === inputSID && x.code === inputCode) || 
+                    (x[0] === inputSID && x[1] === inputCode) // Fallback for different GS formats
+                );
+
+                if (match) {
+                    // 5. SUCCESS: HIDE INPUTS & SHOW NAME SELECTION
+                    await loadStudents(); // Fetch names
+                    sInputs.classList.add('hidden'); // Hide SID/Code fields
+                    sMark.classList.remove('hidden'); // Show Name List & Confirm Button
+                    showNotify("✅ Codes Verified!", "success");
+                } else {
+                    showNotify("❌ Invalid ID or Verify Code", "error");
+                }
             } else {
-                showNotify("❌ Invalid Session ID or Verify Code", "error");
+                box.innerHTML = `&#x274C; Range: ${loc.distance}km (Out of Range)`;
+                showNotify("⚠️ You are not at college!", "error");
             }
-        } else {
-            box.innerHTML = `&#x274C; Range: ${loc.distance}km (Out of Range)`;
-            showNotify("⚠️ You are not within college boundaries", "error");
+        } catch (err) {
+            showNotify("❌ Server Connection Error", "error");
         }
     }, () => {
-        showNotify("❌ GPS Access Denied", "error");
+        showNotify("❌ Please enable GPS/Location", "error");
     });
 }
 
@@ -526,14 +546,6 @@ async function submitFinal() {
         showNotify(result === "ALREADY_MARKED" ? "⚠️ Already marked!" : "❌ Error", "error");
     }
 }
-
-    async function requestGPS() {
-    // Check if already marked today before doing anything
-    if (isPortalLocked()) {
-        showNotify("⚠️ You have already marked attendance today!", "error");
-        document.getElementById('sInputs').innerHTML = "<h3 style='color:var(--success);'>✅ Daily Attendance Locked</h3><p>You have already submitted your presence for today.</p>";
-        return;
-    }
 
     const box = document.getElementById('distBox'); 
     box.classList.remove('hidden'); 
