@@ -1,4 +1,5 @@
-const CACHE_NAME = 'campus-verify-v2';
+// Change 'v1' to 'v2' or 'v3' every time you upload to GitHub
+const CACHE_NAME = 'campus-verify-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
